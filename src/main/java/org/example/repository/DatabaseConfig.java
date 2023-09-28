@@ -16,7 +16,7 @@ public class DatabaseConfig {
      * @param parameter
      * @return
      */
-    protected List<String> getData(String query, String parameter) {
+    public static List<String> getData(String query, String parameter) {
         try (
                 Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
                 Statement statement = connection.createStatement();
@@ -27,8 +27,7 @@ public class DatabaseConfig {
                 listData.add(resultSet.getString(parameter));
             }
             return listData;
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | NullPointerException e) {
             System.out.println("--- Error: Gagal Mengambil Data Dari Database ---");
             return Collections.emptyList();
         }
@@ -40,7 +39,7 @@ public class DatabaseConfig {
      * @param parameters
      * @return
      */
-    protected boolean setData(String query, Object[] parameters) {
+    public static boolean setData(String query, Object[] parameters) {
         try (
                 Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
                 PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -55,8 +54,7 @@ public class DatabaseConfig {
                 parameterIndex++;
             }
             return preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | NullPointerException e) {
             System.out.println("--- Error: Gagal Memasukan/Memperbarui Data Ke Dalam Database ---");
             return false;
         }

@@ -21,7 +21,7 @@ public class Validation {
      * @param userService
      * @return
      */
-    public boolean loginValidation(String username, String password, UserService userService) {
+    public boolean loginValidation(String username, String password, UserService userService) throws NullPointerException {
         userService.setUsername(username);
         userService.setPassword(password);
         if (userService.checkLogin()) {
@@ -53,8 +53,8 @@ public class Validation {
             return true;
         }
 
-        if (!userService.checkUsernameAvailability()) {
-            userService.setUsername(username);
+        userService.setUsername(username);
+        if (userService.checkUsernameAvailability()) {
             userService.setPassword(password);
             if (userService.createUserAccount()) {
                 alert.signUpSuccess();

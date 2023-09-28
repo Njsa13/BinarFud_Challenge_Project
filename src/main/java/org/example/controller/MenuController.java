@@ -2,7 +2,6 @@ package org.example.controller;
 
 import org.example.model.OrderDetail;
 import org.example.model.Product;
-import org.example.model.User;
 import org.example.service.*;
 
 import java.util.InputMismatchException;
@@ -16,11 +15,9 @@ public class MenuController {
     private OrderDetailService orderDetailService = new OrderDetailServiceImpl();
     private OrderService orderService = new OrderServiceImpl();
     private Validation validation = new Validation();
-    private User user = new User();
-    private Integer productIndexSize;
-    private Integer totalPrice;
     MenuView menuView = new MenuView();
     Alert alert = new Alert();
+    private Integer productIndexSize;
 
     /**
      * Method untuk mengelola login menu
@@ -61,14 +58,13 @@ public class MenuController {
             if (password.equals("0")) { return false; }
 
             System.out.println();
-            if (validation.loginValidation(username, password, userService)) {
+            if (validation.loginValidation(username, password, this.userService)) {
                 userService.setUserIdFromDatabase(username, password);
-                this.user.setUserId(userService.getUserId());
                 return true;
             } else {
                 return false;
             }
-        } catch (OutOfMemoryError e) {
+        } catch (OutOfMemoryError | NullPointerException e) {
             System.out.println();
             alert.allErrorAndExceptionAlert();
         }
@@ -92,7 +88,7 @@ public class MenuController {
             if (password.equals("0")) { return false; }
 
             System.out.println();
-            return validation.signUpValidation(username, password, userService);
+            return validation.signUpValidation(username, password, this.userService);
         } catch (OutOfMemoryError e) {
             System.out.println();
             alert.allErrorAndExceptionAlert();
@@ -109,7 +105,7 @@ public class MenuController {
             scanner.nextLine();
             productService.clearListProduct();
             productService.setProductFromDatabase();
-            List<Product> product = productService.getProduct();
+            List<Product> product = this.productService.getProduct();
             this.productIndexSize = product.size();
 
             menuView.mainMenuView(product);
@@ -129,16 +125,18 @@ public class MenuController {
 
     /**
      * Method untuk mengelola fitur tambah pesanan
-     * @param productId
+     * @param index
      * @return
      */
-    public boolean addToOrderList (int productId) {
+    public boolean addToOrderList (int index) {
         try {
             scanner.nextLine();
             productService.clearListProduct();
             productService.setProductFromDatabase();
-            String productName = productService.getProductNameById(productId);
-            int price = productService.getPriceById(productId);
+
+            int productId = productService.getIdByIndex(index);
+            String productName = this.productService.getProductNameById(productId);
+            int price = this.productService.getPriceById(productId);
 
             menuView.addToOrderListView(productName, price);
             Integer quantity = scanner.nextInt();
@@ -149,15 +147,19 @@ public class MenuController {
                 alert.quantityLimit();
                 return true;
             }
-            orderDetailService.setUserId(this.user.getUserId());
-            orderDetailService.clearListOrderDetail();
-            orderDetailService.setOrderDetail(productId, quantity, price);
-            orderDetailService.checkProductAvailability();
+            int subTotalPrice = orderDetailService.calculateSubtotal(quantity, price);
+            orderDetailService.setOrderDetail(productId, quantity, price, this.userService.getUserId(), subTotalPrice);
+
+            if (orderDetailService.checkProductAvailability()) {
+                orderDetailService.updateQuantity();
+            } else {
+                orderDetailService.insertOrderDetail();
+            }
             System.out.println();
         } catch (InputMismatchException e) {
             System.out.println();
             alert.wrongInputType();
-        } catch (OutOfMemoryError | IndexOutOfBoundsException e) {
+        } catch (OutOfMemoryError | NullPointerException | IndexOutOfBoundsException e) {
             System.out.println();
             alert.allErrorAndExceptionAlert();
         }
@@ -173,15 +175,15 @@ public class MenuController {
             scanner.nextLine();
             productService.clearListProduct();
             productService.setProductFromDatabase();
-            orderDetailService.setUserId(this.user.getUserId());
+
+            orderDetailService.setUserId(this.userService.getUserId());
             orderDetailService.clearListOrderDetail();
             orderDetailService.setOrderDetailFromDatabase();
-            List<Product> products = productService.getProduct();
-            List<OrderDetail> orderDetails = orderDetailService.getOrderDetail();
-            orderService.setTotalPrice(orderDetails);
-            this.totalPrice = orderService.getTotalPrice();
 
-            menuView.payAndConfirmView(products, orderDetails, this.totalPrice);
+            List<OrderDetail> orderDetails = this.orderDetailService.getOrderDetail();
+            orderService.setTotalPrice(orderService.calculateTotal(orderDetails));
+
+            menuView.payAndConfirmView(this.productService, orderDetails, this.orderService.getTotalPrice());
             Integer option = scanner.nextInt();
 
             System.out.println();
@@ -189,7 +191,7 @@ public class MenuController {
         } catch (InputMismatchException e) {
             System.out.println();
             alert.wrongInputType();
-        } catch (OutOfMemoryError | IndexOutOfBoundsException e) {
+        } catch (OutOfMemoryError | IndexOutOfBoundsException | NullPointerException e) {
             System.out.println();
             alert.allErrorAndExceptionAlert();
         }
@@ -197,19 +199,20 @@ public class MenuController {
         return -1;
     }
 
-    /*
-    * Method untuk mengelola fitur checkout pesanan
-    * */
     /**
      * Method untuk mengelola fitur check out pesanan
      * @return
      */
     public boolean checkOut() {
         try {
-            orderDetailService.setUserId(this.user.getUserId());
+            productService.clearListProduct();
+            productService.setProductFromDatabase();
+
             orderDetailService.clearListOrderDetail();
             orderDetailService.setOrderDetailFromDatabase();
-            if (orderDetailService.getOrderDetail().isEmpty()) {
+            List<OrderDetail> orderDetails = this.orderDetailService.getOrderDetail();
+
+            if (orderDetails.isEmpty()) {
                 alert.notOrder();
                 return false;
             }
@@ -229,16 +232,15 @@ public class MenuController {
             }
 
             orderService.setAddress(address);
-            orderService.setTotalPrice(this.totalPrice);
+            orderService.setTotalPrice(orderService.calculateTotal(orderDetails));
             orderService.insertOrder();
             orderService.setOrderIdFromDatabase();
 
-            int orderId = orderService.getOrderId();
-            orderDetailService.setOrderId(orderId);
-            orderService.printReceipt("D:\\StrukBelanja.txt", this.user.getUserId());
-            orderDetailService.updateOrderDetail();
-            alert.orderSuccess();
-        } catch (OutOfMemoryError | IndexOutOfBoundsException e) {
+            orderDetailService.setOrderId(this.orderService.getOrderId());
+            orderService.printReceipt("D:\\StrukBelanja.txt", this.productService, this.orderDetailService);
+            if (orderDetailService.updateOrderDetail())
+                alert.orderSuccess();
+        } catch (OutOfMemoryError | IndexOutOfBoundsException | NullPointerException e) {
             System.out.println();
             alert.allErrorAndExceptionAlert();
         }

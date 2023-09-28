@@ -1,0 +1,11 @@
+serviceTest\ProductServiceImplTest.class
+controllerTest\ValidationTest.class
+controllerTest\MenuViewTest.class
+repositoryTest\DatabaseConfigTest.class
+serviceTest\UserServiceImplTest.class
+repositoryTest\UserRepositoryTest.class
+serviceTest\OrderDetailServiceImplTest.class
+serviceTest\OrderServiceImplTest.class
+repositoryTest\OrderDetailRepositoryTest.class
+repositoryTest\OrderRepositoryTest.class
+repositoryTest\ProductRepositoryTest.class

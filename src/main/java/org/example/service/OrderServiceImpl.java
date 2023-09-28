@@ -12,16 +12,11 @@ import java.io.IOException;
 import java.util.List;
 
 public class OrderServiceImpl implements OrderService {
-    Order order = new Order();
+    private Order order = new Order();
 
     @Override
     public void setAddress(String address) {
         this.order.setAddress(address);
-    }
-
-    @Override
-    public void setTotalPrice(List<OrderDetail> orderDetails) {
-        this.order.setTotalPrice(calculateTotal(orderDetails));
     }
 
     @Override
@@ -54,12 +49,9 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    public int calculateTotal(List<OrderDetail> orderDetails) {
-        int total = 0;
-        for (int i = 0; i < orderDetails.size(); i++) {
-            total += orderDetails.get(i).getPriceSubTotal();
-        }
-        return total;
+    public int calculateTotal(List<OrderDetail> orderDetails) throws NullPointerException {
+        return orderDetails.stream()
+                .reduce(0, (result, val) -> result + val.getPriceSubTotal(), Integer::sum);
     }
 
     /**
@@ -73,20 +65,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Method untuk membuat struk belanja
+     * Method untuk membuat/mencetak struk belanja
      * @param filePath
-     * @param userId
+     * @param productService
+     * @param orderDetailService
      */
     @Override
-    public void printReceipt(String filePath, int userId) {
-        ProductService productService = new ProductServiceImpl();
-        OrderDetailService orderDetailService = new OrderDetailServiceImpl();
-
-        productService.clearListProduct();
-        productService.setProductFromDatabase();
-        orderDetailService.setUserId(userId);
-        orderDetailService.clearListOrderDetail();
-        orderDetailService.setOrderDetailFromDatabase();
+    public void printReceipt(String filePath, ProductService productService, OrderDetailService orderDetailService) {
         List<Product> products = productService.getProduct();
         List<OrderDetail> orderDetails = orderDetailService.getOrderDetail();
         int totalPrice = getTotalPrice();
@@ -108,10 +93,10 @@ public class OrderServiceImpl implements OrderService {
                 int price = products.get(productId).getPrice();
                 int quantity = orderDetails.get(i).getQuantity();
                 int subTotalPrice = orderDetails.get(i).getPriceSubTotal();
-                bufferedWriter.write(String.format("%d. %s ---- Rp %,d x %d =====> %d \n", i+1, productName, price, quantity, subTotalPrice).replace(",","."));
+                bufferedWriter.write(String.format("%d. %s ---- Rp %,d x %d =====> %d %n", i+1, productName, price, quantity, subTotalPrice).replace(",","."));
             }
             bufferedWriter.write("------------------------------------------------------\n");
-            bufferedWriter.write(String.format("Total harga : Rp %,d\n", totalPrice).replace(",", "."));
+            bufferedWriter.write(String.format("Total harga : Rp %,d %n", totalPrice).replace(",", "."));
         } catch (IOException e) {
             System.out.println("--- Gagal Mencetak Struk Belanja ---\n");
         }

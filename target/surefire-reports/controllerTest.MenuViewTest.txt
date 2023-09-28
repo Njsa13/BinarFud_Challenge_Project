@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: controllerTest.MenuViewTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.364 s -- in controllerTest.MenuViewTest
