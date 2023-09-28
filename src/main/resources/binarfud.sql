@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 24, 2023 at 04:17 PM
+-- Generation Time: Sep 08, 2023 at 05:34 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.1.12
 
@@ -32,57 +32,9 @@ CREATE TABLE `detail_pesanan` (
   `jumlah` int(50) NOT NULL,
   `subtotal` int(50) NOT NULL,
   `id_user` int(11) NOT NULL,
-  `id_makanan` int(11) NOT NULL,
+  `id_produk` int(11) NOT NULL,
   `id_pesanan` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `detail_pesanan`
---
-
-INSERT INTO `detail_pesanan` (`id_detail_pesanan`, `jumlah`, `subtotal`, `id_user`, `id_makanan`, `id_pesanan`) VALUES
-(1, 2, 24000, 4, 1, 2),
-(2, 3, 18000, 4, 2, 2),
-(3, 1, 12000, 4, 3, 2),
-(4, 1, 12000, 1, 1, 3),
-(5, 1, 3000, 1, 6, 3),
-(6, 2, 24000, 1, 3, 3),
-(7, 1, 9000, 1, 4, 4),
-(8, 2, 24000, 1, 3, 4),
-(9, 1, 3000, 1, 5, 4),
-(10, 1, 6000, 1, 2, 5),
-(11, 2, 24000, 1, 1, 5),
-(12, 2, 6000, 1, 6, 5),
-(13, 1, 3000, 1, 5, 5),
-(14, 1, 12000, 1, 1, 6),
-(15, 1, 9000, 1, 4, 6),
-(16, 2, 12000, 1, 2, 6),
-(17, 1, 12000, 1, 3, 7),
-(18, 1, 3000, 1, 5, 7);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `makanan`
---
-
-CREATE TABLE `makanan` (
-  `id_makanan` int(11) NOT NULL,
-  `nama_makanan` varchar(100) NOT NULL,
-  `harga` int(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `makanan`
---
-
-INSERT INTO `makanan` (`id_makanan`, `nama_makanan`, `harga`) VALUES
-(1, 'Nasi Goreng', 12000),
-(2, 'Mie Goreng', 6000),
-(3, 'Bakso', 12000),
-(4, 'Mie Ayam', 9000),
-(5, 'Es Teh', 3000),
-(6, 'Es Jeruk', 3000);
 
 -- --------------------------------------------------------
 
@@ -93,7 +45,6 @@ INSERT INTO `makanan` (`id_makanan`, `nama_makanan`, `harga`) VALUES
 CREATE TABLE `pesanan` (
   `id_pesanan` int(11) NOT NULL,
   `total_harga` int(50) NOT NULL,
-  `status_pesanan` enum('belum dibayar','dibayar','dikirim','sampai') NOT NULL DEFAULT 'dikirim',
   `alamat` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -101,14 +52,40 @@ CREATE TABLE `pesanan` (
 -- Dumping data for table `pesanan`
 --
 
-INSERT INTO `pesanan` (`id_pesanan`, `total_harga`, `status_pesanan`, `alamat`) VALUES
-(1, 54000, 'dikirim', 'Jonggol'),
-(2, 54000, 'dikirim', 'Jonggolan'),
-(3, 39000, 'dikirim', 'Sleman'),
-(4, 75000, 'dikirim', 'Banjar'),
-(5, 114000, 'dikirim', 'jogja'),
-(6, 147000, 'dikirim', 'Jakarta'),
-(7, 162000, 'dikirim', 'Solo');
+INSERT INTO `pesanan` (`id_pesanan`, `total_harga`, `alamat`) VALUES
+(12, 48000, 'Jakarta'),
+(13, 30000, 'Jogja'),
+(14, 13000, 'Solo'),
+(15, 9000, 'Bantul');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `produk`
+--
+
+CREATE TABLE `produk` (
+  `id_produk` int(11) NOT NULL,
+  `nama_produk` varchar(100) NOT NULL,
+  `kategori` enum('Makanan','Minuman') NOT NULL,
+  `harga` int(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `produk`
+--
+
+INSERT INTO `produk` (`id_produk`, `nama_produk`, `kategori`, `harga`) VALUES
+(1, 'Nasi Goreng', 'Makanan', 12000),
+(2, 'Mie Goreng', 'Makanan', 6000),
+(3, 'Bakso', 'Makanan', 12000),
+(4, 'Mie Ayam', 'Makanan', 9000),
+(5, 'Es Teh', 'Minuman', 3000),
+(6, 'Es Jeruk', 'Minuman', 3000),
+(7, 'Soto Ayam', 'Makanan', 10000),
+(8, 'Es Kelapa Muda', 'Minuman', 6000),
+(9, 'Lemon Tea', 'Minuman', 7000),
+(10, 'Sate Ayam', 'Makanan', 13000);
 
 -- --------------------------------------------------------
 
@@ -127,10 +104,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id_user`, `username`, `password`) VALUES
-(1, 'Najib12', '1234'),
-(2, 'Sauqi', '134'),
-(3, 'Kucing', 'bob78'),
-(4, 'Halo', 'haha12');
+(6, 'Rubbay1', 'Rubba21'),
+(7, 'Najib12', 'Sauqi22');
 
 --
 -- Indexes for dumped tables
@@ -142,20 +117,20 @@ INSERT INTO `user` (`id_user`, `username`, `password`) VALUES
 ALTER TABLE `detail_pesanan`
   ADD PRIMARY KEY (`id_detail_pesanan`),
   ADD KEY `id_pesanan` (`id_pesanan`),
-  ADD KEY `id_makanan` (`id_makanan`),
+  ADD KEY `id_makanan` (`id_produk`),
   ADD KEY `id_user` (`id_user`);
-
---
--- Indexes for table `makanan`
---
-ALTER TABLE `makanan`
-  ADD PRIMARY KEY (`id_makanan`);
 
 --
 -- Indexes for table `pesanan`
 --
 ALTER TABLE `pesanan`
   ADD PRIMARY KEY (`id_pesanan`);
+
+--
+-- Indexes for table `produk`
+--
+ALTER TABLE `produk`
+  ADD PRIMARY KEY (`id_produk`);
 
 --
 -- Indexes for table `user`
@@ -171,25 +146,25 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  MODIFY `id_detail_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
-
---
--- AUTO_INCREMENT for table `makanan`
---
-ALTER TABLE `makanan`
-  MODIFY `id_makanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_detail_pesanan` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pesanan`
 --
 ALTER TABLE `pesanan`
-  MODIFY `id_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `produk`
+--
+ALTER TABLE `produk`
+  MODIFY `id_produk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
@@ -199,7 +174,7 @@ ALTER TABLE `user`
 -- Constraints for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  ADD CONSTRAINT `id_makanan` FOREIGN KEY (`id_makanan`) REFERENCES `makanan` (`id_makanan`),
+  ADD CONSTRAINT `id_makanan` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`),
   ADD CONSTRAINT `id_pesanan` FOREIGN KEY (`id_pesanan`) REFERENCES `pesanan` (`id_pesanan`),
   ADD CONSTRAINT `id_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`);
 COMMIT;
