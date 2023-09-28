@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.model.OrderDetail;
 import org.example.model.Product;
+import org.example.service.ProductService;
 
 import java.util.List;
 
@@ -31,19 +32,17 @@ public class MenuView {
         System.out.println("Ketik 0 lalu enter pada kolom username atau password jika ingin kembali\n");
     }
 
-    public void mainMenuView(List<Product> product) {
+    public void mainMenuView(List<Product> product) throws IndexOutOfBoundsException {
         System.out.println("+===================+");
         System.out.println("|    Daftar Menu    |");
         System.out.println("+===================+\n");
         System.out.println("Pilihan : ");
         for (int i = 0; i < product.size(); i++) {
-            int productId = product.get(i).getProductId();
             String productName = product.get(i).getProductName();
             int price = product.get(i).getPrice();
             String category = product.get(i).getCategory();
-            System.out.println(String.format("%d. %s -------- %d -------- %s", productId, productName, price, category));
+            System.out.printf("%d. %s -------- %d -------- %s %n", i+1, productName, price, category);
         }
-        product.clear();
         System.out.println("----------------------------------");
         System.out.println("99. Konfirmasi Dan Bayar");
         System.out.println("0. Keluar\n");
@@ -54,19 +53,19 @@ public class MenuView {
         System.out.println("+================================+");
         System.out.println("|  Berapa Jumlah Pesanan Anda ?  |");
         System.out.println("+================================+\n");
-        System.out.println(String.format("%s\t\t| %d", productName, price));
+        System.out.printf("%s\t\t| %d %n", productName, price);
         System.out.println("(Input 0 untuk kembali)\n");
         System.out.print("Jumlah => ");
     }
 
-    public void payAndConfirmView(List<Product> products, List<OrderDetail> orderDetails, int totalPrice) {
+    public void payAndConfirmView(ProductService productService, List<OrderDetail> orderDetails, int totalPrice) throws IndexOutOfBoundsException {
         System.out.println("+=======================+");
         System.out.println("|  Daftar Pesanan Anda  |");
         System.out.println("+=======================+\n");
         for (int i = 0; i < orderDetails.size(); i++) {
             int productId = orderDetails.get(i).getProductId();
-            String productName = products.get(productId).getProductName();
-            int price = products.get(productId).getPrice();
+            String productName = productService.getProductNameById(productId);
+            int price = productService.getPriceById(productId);
             int quantity = orderDetails.get(i).getQuantity();
             int subTotalPrice = orderDetails.get(i).getPriceSubTotal();
             System.out.println(String.format("%d. %s ---- Rp %,d x %d =====> %d", i+1, productName, price, quantity, subTotalPrice).replace(",","."));

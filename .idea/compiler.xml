@@ -8,7 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="BinarFud" />
-        <module name="BinarFud_Challenge2" />
+        <module name="BinarFud_Challenge3" />
       </profile>
     </annotationProcessing>
   </component>

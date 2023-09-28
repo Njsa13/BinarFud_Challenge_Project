@@ -30,10 +30,10 @@ public class OrderDetailRepository {
         return databaseConfig.setData(query, parameters);
     }
 
-    public boolean updateOrderIdByUserIdAndOrderId(int pesananId, int userId) {
+    public boolean updateOrderIdByUserIdAndOrderId(int orderId, int userId) {
         String query = "UPDATE detail_pesanan SET id_pesanan = ? WHERE id_user = ? AND id_pesanan IS NULL;";
         Object[] parameters = new Object[2];
-        parameters[0] = pesananId;
+        parameters[0] = orderId;
         parameters[1] = userId;
         return databaseConfig.setData(query, parameters);
     }

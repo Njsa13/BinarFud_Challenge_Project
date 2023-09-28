@@ -17,7 +17,7 @@ public class UserServiceImpl implements UserService{
     }
 
     /**
-     * Method untuk mengambil data dari repository
+     * Method untuk mengambil data userId dari repository dan menyimpannya pada field
      * @param username
      * @param password
      */
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public boolean checkUsernameAvailability() {
         UserRepository userRepository = new UserRepository();
-        return !userRepository.getIdByUsername(this.user.getUsername()).isEmpty();
+        return userRepository.getIdByUsername(this.user.getUsername()).isEmpty();
     }
 
     /**

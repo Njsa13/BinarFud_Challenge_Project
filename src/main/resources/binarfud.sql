@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 08, 2023 at 05:34 PM
+-- Generation Time: Sep 22, 2023 at 11:27 AM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.1.12
 
@@ -36,6 +36,15 @@ CREATE TABLE `detail_pesanan` (
   `id_pesanan` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `detail_pesanan`
+--
+
+INSERT INTO `detail_pesanan` (`id_detail_pesanan`, `jumlah`, `subtotal`, `id_user`, `id_produk`, `id_pesanan`) VALUES
+(1, 1, 12000, 1, 1, NULL),
+(2, 2, 12000, 2, 2, 1),
+(3, 2, 12000, 2, 2, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -53,10 +62,8 @@ CREATE TABLE `pesanan` (
 --
 
 INSERT INTO `pesanan` (`id_pesanan`, `total_harga`, `alamat`) VALUES
-(12, 48000, 'Jakarta'),
-(13, 30000, 'Jogja'),
-(14, 13000, 'Solo'),
-(15, 9000, 'Bantul');
+(1, 9999, 'Jogja'),
+(2, 9999, 'Solo');
 
 -- --------------------------------------------------------
 
@@ -104,8 +111,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id_user`, `username`, `password`) VALUES
-(6, 'Rubbay1', 'Rubba21'),
-(7, 'Najib12', 'Sauqi22');
+(1, 'Test', 'Test12TestAccount'),
+(2, 'Test1', 'TestAccount1');
 
 --
 -- Indexes for dumped tables
@@ -146,13 +153,13 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  MODIFY `id_detail_pesanan` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_detail_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `pesanan`
 --
 ALTER TABLE `pesanan`
-  MODIFY `id_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_pesanan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `produk`
@@ -164,7 +171,7 @@ ALTER TABLE `produk`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

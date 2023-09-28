@@ -6,15 +6,15 @@ import java.util.List;
 
 public interface OrderDetailService {
     void setOrderDetailFromDatabase();
-    void setOrderDetail(int productId, int quantity, int price);
+    void setOrderDetail(int productId, int quantity, int price, int userId, int priceSubTotal);
     void setUserId(int userId);
     void setOrderId(int orderId);
     void clearListOrderDetail();
     List<OrderDetail> getOrderDetail();
     int calculateSubtotal(int quantity, int price);
-    void checkProductAvailability();
-    boolean insertOrderDetail();
+    boolean checkProductAvailability();
+    void insertOrderDetail();
     boolean updateOrderDetail();
-    boolean updateQuantity();
+    void updateQuantity();
 
 }
