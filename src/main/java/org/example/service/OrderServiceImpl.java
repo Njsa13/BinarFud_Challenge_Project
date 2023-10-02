@@ -89,8 +89,8 @@ public class OrderServiceImpl implements OrderService {
             bufferedWriter.write("+==========================+\n");
             for (int i = 0; i < orderDetails.size(); i++) {
                 int productId = orderDetails.get(i).getProductId();
-                String productName = products.get(productId).getProductName();
-                int price = products.get(productId).getPrice();
+                String productName = productService.getProductNameById(productId);
+                int price = productService.getPriceById(productId);
                 int quantity = orderDetails.get(i).getQuantity();
                 int subTotalPrice = orderDetails.get(i).getPriceSubTotal();
                 bufferedWriter.write(String.format("%d. %s ---- Rp %,d x %d =====> %d %n", i+1, productName, price, quantity, subTotalPrice).replace(",","."));
