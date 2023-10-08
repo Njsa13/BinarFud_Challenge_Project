@@ -58,7 +58,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>com.binarfud.binarfud_challenge4</mainClass>
+							<mainClass>com.binarfud.binarfud_challenge4.BinarFudChallenge4Application</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
