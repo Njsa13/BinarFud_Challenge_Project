@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -38,6 +39,8 @@ public class UserServiceImpl implements UserService{
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Method untuk mengecek ketersediaan username
@@ -66,41 +69,10 @@ public class UserServiceImpl implements UserService{
         }
     }
 
-    /**
-     * Method untuk memvalidasi data menggunakan regex
-     * @param signupRequest
-     * @return
-     */
-    @Override
-    public Boolean validateUserWithRegex(SignupRequest signupRequest) {
-        Optional<SignupRequest> signupRequestOptional = Optional.ofNullable(signupRequest);
-        if (signupRequestOptional.isPresent()) {
-            Optional<String> usernameOptional = Optional.ofNullable(signupRequest.getUsername());
-            Optional<String> passwordOptional = Optional.ofNullable(signupRequest.getPassword());
-            Optional<String> emailOptional = Optional.ofNullable(signupRequest.getEmail());
-            if (usernameOptional.isPresent() && passwordOptional.isPresent() && emailOptional.isPresent()) {
-                User user = convertUserDTOToUser(signupRequest);
-                log.debug("Validating user data using regex with username = {}", signupRequest.getUsername());
-                Matcher usernameMatcher = usernamePattern.matcher(user.getUsername());
-                Matcher passwordMatcher = passwordPattern.matcher(user.getPassword());
-                Matcher emailMatcher = emailPattern.matcher(user.getEmail());
-                return usernameMatcher.matches() && passwordMatcher.matches() && emailMatcher.matches();
-            } else {
-                throw new IllegalArgumentException("Username, Password, and Email cannot be null");
-            }
-        } else {
-            throw new IllegalArgumentException("User cannot be null");
-        }
-    }
-
     @Override
     public User convertUserDTOToUser(SignupRequest signupRequest) {
         log.debug("Converting userDTO to User with username = {}", signupRequest.getUsername());
-        return User.builder()
-                .username(signupRequest.getUsername())
-                .password(signupRequest.getPassword())
-                .email(signupRequest.getEmail())
-                .build();
+        return new User(signupRequest.getUsername(), signupRequest.getEmail(), passwordEncoder.encode(signupRequest.getPassword()));
     }
 
     /**

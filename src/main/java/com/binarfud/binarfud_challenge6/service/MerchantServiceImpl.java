@@ -4,6 +4,7 @@ import com.binarfud.binarfud_challenge6.dto.MerchantDTO;
 import com.binarfud.binarfud_challenge6.dto.PaginationDTO;
 import com.binarfud.binarfud_challenge6.entity.Merchant;
 import com.binarfud.binarfud_challenge6.entity.User;
+import com.binarfud.binarfud_challenge6.enums.ERole;
 import com.binarfud.binarfud_challenge6.enums.MerchantStatus;
 import com.binarfud.binarfud_challenge6.exception.DataNotFoundException;
 import com.binarfud.binarfud_challenge6.repository.MerchantRepository;
@@ -138,7 +139,7 @@ public class MerchantServiceImpl implements  MerchantService {
             log.debug("Saving Merchant with merchant name = {}", merchantDTO.getMerchantName());
             if (merchantNameOptional.isPresent() && merchantLocationOptional.isPresent()
                     && merchantStatusOptional.isPresent() && usernameOptional.isPresent()) {
-                User user = userRepository.findByUsername(merchantDTO.getUsername())
+                User user = userRepository.findByUsernameAndRoleName(merchantDTO.getUsername(), ERole.ROLE_MERCHANT)
                         .orElseThrow(() -> new DataNotFoundException("User with username = "+merchantDTO.getUsername()));
                 Merchant merchant = convertMerchantDTOToMerchant(merchantDTO);
                 merchant.setUser(user);

@@ -72,43 +72,6 @@ public class UserServiceTest {
     }
 
     @Test
-    void validateUserWithRegexTest() {
-        SignupRequest signupRequest = SignupRequest.builder()
-                .username("TestUserUsername")
-                .password("TestUserPassword123")
-                .email("testemail@gmail.com")
-                .build();
-        Boolean result = userService.validateUserWithRegex(signupRequest);
-        Assertions.assertTrue(result);
-    }
-
-    @Test
-    void validateUserWithRegexTest_NotMatch() {
-        SignupRequest signupRequest = SignupRequest.builder()
-                .username("WrongUsername")
-                .password("WrongPassword")
-                .email("WrongEmail")
-                .build();
-        Boolean result = userService.validateUserWithRegex(signupRequest);
-        Assertions.assertFalse(result);
-    }
-
-    @Test
-    void validateUserWithRegexTest_throwIllegalArgumentException1() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> userService.validateUserWithRegex(null));
-    }
-
-    @Test
-    void validateUserWithRegexTest_throwIllegalArgumentException2() {
-        SignupRequest signupRequest = SignupRequest.builder()
-                .username("TestUserUsername")
-                .password(null)
-                .email(null)
-                .build();
-        Assertions.assertThrows(IllegalArgumentException.class, () -> userService.validateUserWithRegex(signupRequest));
-    }
-
-    @Test
     void getAllUserWithPagination() {
         User user = User.builder()
                 .username("TestUserUsername")
