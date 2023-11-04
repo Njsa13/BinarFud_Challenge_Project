@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +32,7 @@ public class ProductController {
      * @param imageFile
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> addProduct(@RequestPart("productDTO") String productDTOString,
                                              @RequestPart("imageFile") MultipartFile imageFile) {
@@ -62,6 +64,7 @@ public class ProductController {
      * @param page
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @GetMapping(value = "/get-all", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<ProductDTO>>> getAllProduct(@RequestParam("page") Integer page) {
         try {
@@ -86,6 +89,7 @@ public class ProductController {
      * @param page
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN", "ROLE_CUSTOMER"})
     @GetMapping(value = "/get-open", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<ProductDTO>>> getOpenProduct(@RequestParam("page") Integer page) {
         try {
@@ -112,6 +116,7 @@ public class ProductController {
      * @param productName
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @PutMapping(value = "/update/{productName}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> updateProduct(@RequestPart("productDTO") String productDTOString,
                                                 @RequestPart("imageFile") MultipartFile imageFile,
@@ -148,6 +153,7 @@ public class ProductController {
      * @param merchantName
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @DeleteMapping(value = "/delete/{productName}")
     public ResponseEntity<String> deleteProduct(@PathVariable("productName") String productName,
                                                 @RequestParam("merchantName") String merchantName) {

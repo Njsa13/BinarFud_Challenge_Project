@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -26,6 +27,7 @@ public class MerchantController {
      * @param merchantDTO
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @PostMapping(value = "/add", consumes = "application/json")
     public ResponseEntity<String> addMerchant(@RequestBody MerchantDTO merchantDTO) {
         try {
@@ -50,6 +52,7 @@ public class MerchantController {
      * @param page
      * @return
      */
+    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT"})
     @GetMapping(value = "/get-all", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<MerchantDTO>>> getAllMerchant(@RequestParam("page") Integer page) {
         try {
@@ -74,6 +77,7 @@ public class MerchantController {
      * @param page
      * @return
      */
+    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN", "ROLE_MERCHANT"})
     @GetMapping(value = "/get-open", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<MerchantDTO>>> getOpenMerchant(@RequestParam("page") Integer page) {
         try {
@@ -99,6 +103,7 @@ public class MerchantController {
      * @param merchantName
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @PutMapping(value = "/update/{merchantName}", consumes = "application/json")
     public ResponseEntity<String> updateMerchant(@RequestBody MerchantDTO merchantDTO,
                                                  @PathVariable("merchantName") String merchantName) {
@@ -131,6 +136,7 @@ public class MerchantController {
      * @param merchantStatus
      * @return
      */
+    @Secured({"ROLE_MERCHANT", "ROLE_ADMIN"})
     @PutMapping(value = "/update-status/{merchantName}", consumes = "application/json")
     public ResponseEntity<String> updateMerchantStatus(@PathVariable("merchantName") String merchantName,
                                                        @RequestParam("status") String merchantStatus) {
@@ -151,6 +157,7 @@ public class MerchantController {
      * @param merchantName
      * @return
      */
+    @Secured("ROLE_ADMIN")
     @DeleteMapping(value = "/delete/{merchantName}")
     public ResponseEntity<String> deleteMerchant(@PathVariable("merchantName") String merchantName) {
         try {
