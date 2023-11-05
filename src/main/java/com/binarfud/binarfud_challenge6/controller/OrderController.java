@@ -15,7 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
@@ -37,7 +36,6 @@ public class OrderController {
      * @param username
      * @return
      */
-    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN"})
     @PutMapping(value = "/update", consumes = "application/json")
     public ResponseEntity<String> updateOrder(@RequestBody OrderDTO orderDTO,
                                               @RequestParam("username") String username) {
@@ -59,7 +57,6 @@ public class OrderController {
      * @param username
      * @return
      */
-    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN"})
     @PostMapping(value = "/detail/add", consumes = "application/json")
     public ResponseEntity<String> addOrderDetail(@RequestBody OrderDetailDTO orderDetailDTO,
                                                  @RequestParam("username") String username) {
@@ -94,8 +91,6 @@ public class OrderController {
      * @param username
      * @return
      */
-
-    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN"})
     @GetMapping(value = "/detail/get", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<OrderDetailDTO>>> getOrderDetail(@RequestParam("page") Integer page,
                                                                                   @RequestParam("username") String username) {
@@ -123,7 +118,6 @@ public class OrderController {
      * @param username
      * @return
      */
-    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN"})
     @DeleteMapping(value = "/detail/delete")
     public ResponseEntity<String> deleteMerchant(@RequestParam("productName") String productName,
                                                  @RequestParam("merchantName") String merchantName,
@@ -145,7 +139,6 @@ public class OrderController {
      * @param username
      * @return
      */
-    @Secured({"ROLE_CUSTOMER", "ROLE_ADMIN"})
     @GetMapping(value = "/print-invoice/{username}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> printOrder(@PathVariable("username") String username) {
         try {

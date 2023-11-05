@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,6 @@ public class UserController {
      * @param page
      * @return
      */
-    @Secured("ROLE_ADMIN")
     @GetMapping(value = "/get", produces = "application/json")
     public ResponseEntity<Response<PaginationDTO<UserDTO>>> getUser(@RequestParam("page") Integer page) {
         try {
@@ -55,7 +53,6 @@ public class UserController {
      * @param username
      * @return
      */
-    @PreAuthorize("hasAnyRole('ROLE_CUSTOMER', 'ROLE_MERCHANT', 'ROLE_ADMIN') and #username == principal.name")
     @PutMapping(value = "/update/{username}", consumes = "application/json")
     public ResponseEntity<String> updateUser(@RequestBody UserDTO userDTO,
                                              @PathVariable("username") String username) {
@@ -92,7 +89,6 @@ public class UserController {
      * @param username
      * @return
      */
-    @PreAuthorize("hasAnyRole('ROLE_CUSTOMER', 'ROLE_MERCHANT', 'ROLE_ADMIN') and #username == principal.name")
     @DeleteMapping(value = "/delete/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable("username") String username) {
         try {
