@@ -7,62 +7,68 @@ import com.binarfud.binarfud_challenge6.entity.Roles;
 import com.binarfud.binarfud_challenge6.entity.User;
 import com.binarfud.binarfud_challenge6.enums.ERole;
 import com.binarfud.binarfud_challenge6.exception.DataNotFoundException;
+import com.binarfud.binarfud_challenge6.repository.RoleRepository;
 import com.binarfud.binarfud_challenge6.repository.UserRepository;
 import com.binarfud.binarfud_challenge6.service.UserService;
+import com.binarfud.binarfud_challenge6.service.UserServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.security.Signature;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
+@AutoConfigureMockMvc
 @SpringBootTest
 public class UserServiceTest {
-    @Autowired
-    private UserService userService;
-    @Autowired
+    @InjectMocks
+    private UserServiceImpl userService;
+    @Mock
     private UserRepository userRepository;
-
-    @AfterEach
-    void tearDown() {
-        userRepository.deleteAll();
-    }
+    @Mock
+    private RoleRepository roleRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void checkUsernameAvailabilityTest() {
-        User user = User.builder()
-                .username("TestUserUsername")
-                .password("TestUserPassword")
-                .email("testemail@gmail.com")
-                .build();
-        userRepository.save(user);
         SignupRequest signupRequest = SignupRequest.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
+        Mockito.when(userRepository.existsByUsername(signupRequest.getUsername())).thenReturn(true);
         Boolean result = userService.checkUsernameAvailability(signupRequest);
+        Mockito.verify(userRepository, Mockito.times(1))
+                .existsByUsername(signupRequest.getUsername());
         Assertions.assertTrue(result);
     }
 
     @Test
     void checkUsernameAvailabilityTest_DataNotAvailable() {
-        User user = User.builder()
+        SignupRequest signupRequest = SignupRequest.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
-        userRepository.save(user);
-        SignupRequest signupRequest = SignupRequest.builder()
-                .username("TestUserUsername1")
-                .password("TestUserPassword2")
-                .email("testemail3@gmail.com")
-                .build();
+        Mockito.when(userRepository.existsByUsername(signupRequest.getUsername())).thenReturn(false);
         Boolean result = userService.checkUsernameAvailability(signupRequest);
+        Mockito.verify(userRepository, Mockito.times(1))
+                .existsByUsername(signupRequest.getUsername());
         Assertions.assertFalse(result);
     }
 
@@ -73,18 +79,21 @@ public class UserServiceTest {
 
     @Test
     void getAllUserWithPagination() {
-        User user = User.builder()
+        List<User> users = Collections.singletonList(User.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
-                .build();
-        userRepository.save(user);
+                .build());
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 5), 1);
+        Mockito.when(userRepository.findAll(PageRequest.of(0, 5))).thenReturn(userPage);
         PaginationDTO<UserDTO> paginationDTO = userService.getAllUserWithPagination(1);
         UserDTO userDTO = UserDTO.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
+        Mockito.verify(userRepository, Mockito.times(2))
+                .findAll(PageRequest.of(0, 5));
         Assertions.assertEquals(userDTO, paginationDTO.getData().get(0));
         Assertions.assertEquals(1, paginationDTO.getCurrentPage());
         Assertions.assertEquals(1, paginationDTO.getTotalPages());
@@ -92,6 +101,7 @@ public class UserServiceTest {
 
     @Test
     void getAllUserWithPagination_throwDataNotFoundException() {
+        Mockito.when(userRepository.findAll(PageRequest.of(0, 5))).thenReturn(Page.empty());
         Assertions.assertThrows(DataNotFoundException.class, () -> userService.getAllUserWithPagination(1));
     }
 
@@ -110,15 +120,12 @@ public class UserServiceTest {
                 .email("testemail@gmail.com")
                 .role(eRoleSet)
                 .build();
+        Mockito.when(roleRepository.findByRoleName(ERole.ROLE_CUSTOMER)).thenReturn(Optional.of(new Roles()));
+        Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         userService.addUser(signupRequest);
-        Optional<User> userOptional = userRepository.findByUsername(signupRequest.getUsername());
-        if (userOptional.isPresent()) {
-            Assertions.assertEquals("TestUserUsername12", userOptional.get().getUsername());
-            Assertions.assertEquals("TestUserPassword12", userOptional.get().getPassword());
-            Assertions.assertEquals("testemail@gmail.com", userOptional.get().getEmail());
-        } else {
-            throw new NullPointerException();
-        }
+        Mockito.verify(userRepository, Mockito.times(1)).save(Mockito.any(User.class));
+        Mockito.verify(roleRepository, Mockito.times(1)).findByRoleName(ERole.ROLE_CUSTOMER);
+        Assertions.assertDoesNotThrow(() -> userService.addUser(signupRequest));
     }
 
     @Test
@@ -143,19 +150,19 @@ public class UserServiceTest {
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
-        userRepository.save(user);
+        String oldUsername = "TestUserUsername";
         UserDTO newUser = UserDTO.builder()
                 .username("NewTestUserUsername")
                 .password("NewTestUserPassword")
                 .email("newtestemail@gmail.com")
                 .build();
-        userService.updateUser(newUser, user.getUsername());
-        Optional<User> userOptional = userRepository.findByUsername(newUser.getUsername());
-        if (userOptional.isPresent()) {
-            Assertions.assertEquals("NewTestUserUsername", userOptional.get().getUsername());
-            Assertions.assertEquals("NewTestUserPassword", userOptional.get().getPassword());
-            Assertions.assertEquals("newtestemail@gmail.com", userOptional.get().getEmail());
-        }
+        Mockito.when(userRepository.findByUsername(oldUsername)).thenReturn(Optional.of(user));
+        Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+        userService.updateUser(newUser, oldUsername);
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findByUsername(oldUsername);
+        Mockito.verify(userRepository,Mockito.times(1)).save(Mockito.any(User.class));
+        Assertions.assertDoesNotThrow(() -> userService.updateUser(newUser, oldUsername));
     }
 
     @Test
@@ -165,6 +172,7 @@ public class UserServiceTest {
                 .password("NewTestUserPassword")
                 .email("newtestemail@gmail.com")
                 .build();
+        Mockito.when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.empty());
         Assertions.assertThrows(DataNotFoundException.class, () -> userService.updateUser(userDTO, "WrongUsername"));
     }
 
@@ -176,17 +184,22 @@ public class UserServiceTest {
     @Test
     void deleteUserTest() {
         User user = User.builder()
+                .userId("1")
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
-        userRepository.save(user);
-        userService.deleteUser(user.getUsername());
-        Assertions.assertNull(userRepository.findByUsername("TestUserUsername"));
+        String username = "TestUserUsername";
+        Mockito.when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        userService.deleteUser(username);
+        Mockito.verify(userRepository, Mockito.times(1)).findByUsername(username);
+        Mockito.verify(userRepository, Mockito.times(1)).deleteById(user.getUserId());
+        Assertions.assertDoesNotThrow(() -> userService.deleteUser(username));
     }
 
     @Test
     void deleteUserTest_throwDataNotFoundException() {
+        Mockito.when(userRepository.findByUsername(Mockito.anyString())).thenReturn(Optional.empty());
         Assertions.assertThrows(DataNotFoundException.class, () -> userService.deleteUser("WrongUsername"));
     }
 

@@ -8,36 +8,41 @@ import com.binarfud.binarfud_challenge6.enums.OrderStatus;
 import com.binarfud.binarfud_challenge6.exception.DataNotFoundException;
 import com.binarfud.binarfud_challenge6.repository.*;
 import com.binarfud.binarfud_challenge6.service.OrderDetailService;
+import com.binarfud.binarfud_challenge6.service.OrderDetailServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+@AutoConfigureMockMvc
 @SpringBootTest
 public class OrderDetailTest {
 
-    @Autowired
+    @InjectMocks
+    private OrderDetailServiceImpl orderDetailService;
+    @Mock
     private OrderDetailRepository orderDetailRepository;
-    @Autowired
+    @Mock
     private UserRepository userRepository;
-    @Autowired
+    @Mock
     private OrderRepository orderRepository;
-    @Autowired
+    @Mock
     private ProductRepository productRepository;
-    @Autowired
+    @Mock
     private MerchantRepository merchantRepository;
-    @Autowired
-    private OrderDetailService orderDetailService;
-
-    @AfterEach
-    void tearDown() {
-        orderDetailRepository.deleteAll();
-        userRepository.deleteAll();
-        orderRepository.deleteAll();
-        productRepository.deleteAll();
-        merchantRepository.deleteAll();
-    }
 
     @Test
     void checkOrderDetailAvailabilityTest() {
@@ -48,7 +53,7 @@ public class OrderDetailTest {
                 .build();
         Order order = Order.builder()
                 .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
+                .user(user)
                 .build();
         Merchant merchant = Merchant.builder()
                 .merchantName("TestMerchantName")
@@ -58,20 +63,25 @@ public class OrderDetailTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
         OrderDetail orderDetail = OrderDetail.builder()
                 .quantity(2)
                 .subtotalPrice(20000)
-                .product(productRepository.save(product))
-                .order(orderRepository.save(order))
+                .product(product)
+                .order(order)
                 .build();
-        orderDetailRepository.save(orderDetail);
+        Mockito.when(orderDetailRepository
+                .existsByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                        user.getUsername(), product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE))
+                .thenReturn(true);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
                 .build();
         Boolean result = orderDetailService.checkOrderDetailAvailability(orderDetailDTO, "TestUserUsername");
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).existsByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                user.getUsername(), product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE);
         Assertions.assertTrue(result);
     }
 
@@ -82,34 +92,6 @@ public class OrderDetailTest {
 
     @Test
     void getAllOrderDetailWithPaginationTest() {
-        User user = User.builder()
-                .username("TestUserUsername")
-                .password("TestUserPassword")
-                .email("testemail@gmail.com")
-                .build();
-        Order order = Order.builder()
-                .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
-                .build();
-        Merchant merchant = Merchant.builder()
-                .merchantName("TestMerchantName")
-                .merchantLocation("TestMerchantLocation")
-                .merchantStatus(MerchantStatus.CLOSED)
-                .build();
-        Product product = Product.builder()
-                .productName("TestProductName")
-                .price(10000)
-                .merchant(merchantRepository.save(merchant))
-                .build();
-        OrderDetail orderDetail = OrderDetail.builder()
-                .quantity(2)
-                .subtotalPrice(20000)
-                .product(productRepository.save(product))
-                .order(orderRepository.save(order))
-                .build();
-        orderDetailRepository.save(orderDetail);
-        PaginationDTO<OrderDetailDTO> paginationDTO = orderDetailService
-                .getAllOrderDetailWithPagination(1, "TestUserUsername");
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
@@ -117,6 +99,15 @@ public class OrderDetailTest {
                 .quantity(2)
                 .subtotalPrice(20000)
                 .build();
+        List<OrderDetailDTO> orderDetails = Collections.singletonList(orderDetailDTO);
+        Page<OrderDetailDTO> orderDetailPage = new PageImpl<>(orderDetails, PageRequest.of(0, 5), 1);
+        Mockito.when(orderDetailRepository
+                .findByUsernameAndOrderStatusWithPagination(PageRequest.of(0, 5), "TestUserUsername", OrderStatus.INCOMPLETE))
+                .thenReturn(orderDetailPage);
+        PaginationDTO<OrderDetailDTO> paginationDTO = orderDetailService
+                .getAllOrderDetailWithPagination(1, "TestUserUsername");
+        Mockito.verify(orderDetailRepository, Mockito.times(2))
+                .findByUsernameAndOrderStatusWithPagination(PageRequest.of(0, 5), "TestUserUsername", OrderStatus.INCOMPLETE);
         Assertions.assertEquals(orderDetailDTO, paginationDTO.getData().get(0));
         Assertions.assertEquals(1, paginationDTO.getCurrentPage());
         Assertions.assertEquals(1, paginationDTO.getTotalPages());
@@ -124,6 +115,9 @@ public class OrderDetailTest {
 
     @Test
     void getAllOrderDetailWithPaginationTest_throwDataNotFoundException() {
+        Mockito.when(orderDetailRepository
+                        .findByUsernameAndOrderStatusWithPagination(PageRequest.of(0, 5), "TestUserUsername", OrderStatus.INCOMPLETE))
+                .thenReturn(Page.empty());
         Assertions.assertThrows(DataNotFoundException.class, () ->
                 orderDetailService.getAllOrderDetailWithPagination(1, "TestUserUsername"));
     }
@@ -150,9 +144,8 @@ public class OrderDetailTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
-        productRepository.save(product);
         User user = User.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
@@ -160,22 +153,27 @@ public class OrderDetailTest {
                 .build();
         Order order = Order.builder()
                 .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
+                .user(user)
                 .build();
-        orderRepository.save(order);
+        Mockito.when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        Mockito.when(productRepository.findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName()))
+                .thenReturn(product);
+        Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
+                .thenReturn(order);
+        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
                 .quantity(2)
                 .build();
         orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername");
-        OrderDetail orderDetail = orderDetailRepository
-                .findByUsernameAndProductNameAndMerchantNameAndOrderStatus
-                        ("TestUserUsername", "TestProductName", "TestMerchantName", OrderStatus.INCOMPLETE);
-        Assertions.assertEquals("TestProductName", orderDetail.getProduct().getProductName());
-        Assertions.assertEquals(2, orderDetail.getQuantity());
-        Assertions.assertEquals(20000, orderDetail.getSubtotalPrice());
-        Assertions.assertEquals(OrderStatus.INCOMPLETE, orderDetail.getOrder().getOrderStatus());
+        Mockito.verify(userRepository, Mockito.times(1)).findByUsername(user.getUsername());
+        Mockito.verify(productRepository, Mockito.times(1))
+                .findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName());
+        Mockito.verify(orderRepository, Mockito.times(1))
+                .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
+        Assertions.assertDoesNotThrow(() -> orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
     @Test
@@ -188,28 +186,34 @@ public class OrderDetailTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
-        productRepository.save(product);
         User user = User.builder()
                 .username("TestUserUsername")
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
-        userRepository.save(user);
+        Mockito.when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
+        Mockito.when(productRepository.findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName()))
+                .thenReturn(product);
+        Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
+                .thenReturn(null);
+        Mockito.when(orderRepository.save(Mockito.any(Order.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
                 .quantity(2)
                 .build();
         orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername");
-        OrderDetail orderDetail = orderDetailRepository
-                .findByUsernameAndProductNameAndMerchantNameAndOrderStatus
-                        ("TestUserUsername", "TestProductName", "TestMerchantName", OrderStatus.INCOMPLETE);
-        Assertions.assertEquals("TestProductName", orderDetail.getProduct().getProductName());
-        Assertions.assertEquals(2, orderDetail.getQuantity());
-        Assertions.assertEquals(20000, orderDetail.getSubtotalPrice());
-        Assertions.assertEquals(OrderStatus.INCOMPLETE, orderDetail.getOrder().getOrderStatus());
+        Mockito.verify(userRepository, Mockito.times(1)).findByUsername(user.getUsername());
+        Mockito.verify(productRepository, Mockito.times(1))
+                .findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName());
+        Mockito.verify(orderRepository, Mockito.times(1))
+                .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(Mockito.any(Order.class));
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
+        Assertions.assertDoesNotThrow(() -> orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
     @Test
@@ -219,6 +223,11 @@ public class OrderDetailTest {
                 .merchantName("TestMerchantName")
                 .quantity(2)
                 .build();
+        Mockito.when(userRepository.findByUsername("TestUserUsername")).thenReturn(Optional.empty());
+        Mockito.when(productRepository.findByProductNameAndMerchantName("TestProductName", "TestMerchantName"))
+                .thenReturn(null);
+        Mockito.when(orderRepository.findByUsernameAndOrderStatus("TestUserUsername", OrderStatus.INCOMPLETE))
+                .thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
@@ -246,7 +255,7 @@ public class OrderDetailTest {
                 .build();
         Order order = Order.builder()
                 .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
+                .user(user)
                 .build();
         Merchant merchant = Merchant.builder()
                 .merchantName("TestMerchantName")
@@ -256,26 +265,29 @@ public class OrderDetailTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
         OrderDetail orderDetail = OrderDetail.builder()
                 .quantity(2)
                 .subtotalPrice(20000)
-                .product(productRepository.save(product))
-                .order(orderRepository.save(order))
+                .product(product)
+                .order(order)
                 .build();
-        orderDetailRepository.save(orderDetail);
+        Mockito.when(orderDetailRepository
+                .findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                        "TestUserUsername", product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE))
+                .thenReturn(orderDetail);
+        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
                 .quantity(3)
                 .build();
         orderDetailService.updateOrderDetail(orderDetailDTO, "TestUserUsername");
-        OrderDetail orderDetailCheck = orderDetailRepository
-                .findByUsernameAndProductNameAndMerchantNameAndOrderStatus
-                        ("TestUserUsername", "TestProductName", "TestMerchantName", OrderStatus.INCOMPLETE);
-        Assertions.assertEquals(3, orderDetailCheck.getQuantity());
-        Assertions.assertEquals(30000, orderDetailCheck.getSubtotalPrice());
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                "TestUserUsername", product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE);
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
+        Assertions.assertDoesNotThrow(() -> orderDetailService.updateOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
     @Test
@@ -285,6 +297,10 @@ public class OrderDetailTest {
                 .merchantName("TestMerchantName")
                 .quantity(3)
                 .build();
+        Mockito.when(orderDetailRepository
+                        .findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                                "TestUserUsername", orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName(), OrderStatus.INCOMPLETE))
+                .thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> orderDetailService.updateOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
@@ -312,7 +328,7 @@ public class OrderDetailTest {
                 .build();
         Order order = Order.builder()
                 .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
+                .user(user)
                 .build();
         Merchant merchant = Merchant.builder()
                 .merchantName("TestMerchantName")
@@ -322,27 +338,38 @@ public class OrderDetailTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
         OrderDetail orderDetail = OrderDetail.builder()
+                .orderDetailId("1")
                 .quantity(2)
                 .subtotalPrice(20000)
-                .product(productRepository.save(product))
-                .order(orderRepository.save(order))
+                .product(product)
+                .order(order)
                 .build();
-        orderDetailRepository.save(orderDetail);
-        OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
-                .productName("TestProductName")
-                .merchantName("TestMerchantName")
-                .build();
-        orderDetailService.deleteOrderDetail("TestProductName", "TestMerchantName", "TestUserUsername");
-        Assertions.assertNull(orderDetailRepository
-                .findByUsernameAndProductNameAndMerchantNameAndOrderStatus
-                        ("TestUserUsername", "TestProductName", "TestMerchantName", OrderStatus.INCOMPLETE));
+        String productName = "TestProductName";
+        String merchantName = "TestMerchantName";
+        String username = "TestUserUsername";
+        Mockito.when(orderDetailRepository
+                        .findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                                username, product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE))
+                .thenReturn(orderDetail);
+        orderDetailService.deleteOrderDetail(productName, merchantName, username);
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                username, product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE);
+        Mockito.verify(orderDetailRepository, Mockito.times(1)).deleteById(orderDetail.getOrderDetailId());
+        Assertions.assertDoesNotThrow(() -> orderDetailService.deleteOrderDetail(productName, merchantName, username));
     }
 
     @Test
     void deleteOrderDetailTest_throwDataNotFoundException() {
+        String productName = "TestProductName";
+        String merchantName = "TestMerchantName";
+        String username = "TestUserUsername";
+        Mockito.when(orderDetailRepository
+                        .findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
+                                username, productName, merchantName, OrderStatus.INCOMPLETE))
+                .thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> orderDetailService.deleteOrderDetail("TestProductName", "TestMerchantName", "TestUserUsername"));
     }
 

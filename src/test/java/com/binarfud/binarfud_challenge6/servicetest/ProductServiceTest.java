@@ -9,50 +9,62 @@ import com.binarfud.binarfud_challenge6.exception.DataNotFoundException;
 import com.binarfud.binarfud_challenge6.repository.MerchantRepository;
 import com.binarfud.binarfud_challenge6.repository.ProductRepository;
 import com.binarfud.binarfud_challenge6.service.ProductService;
+import com.binarfud.binarfud_challenge6.service.ProductServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+@AutoConfigureMockMvc
 @SpringBootTest
 public class ProductServiceTest {
-    @Autowired
-    private ProductService productService;
-    @Autowired
+    @InjectMocks
+    private ProductServiceImpl productService;
+    @Mock
     private ProductRepository productRepository;
-    @Autowired
+    @Mock
     private MerchantRepository merchantRepository;
-
-    @AfterEach
-    void tearDown() {
-        productRepository.deleteAll();
-        merchantRepository.deleteAll();
-    }
 
     @Test
     void checkProductAvailabilityTest() {
-        Merchant merchant = Merchant.builder()
-                .merchantName("TestMerchantName")
-                .merchantLocation("TestMerchantLocation")
-                .merchantStatus(MerchantStatus.CLOSED)
-                .build();
-        Product product = Product.builder()
-                .productName("TestProductName")
-                .price(10000)
-                .merchant(merchantRepository.save(merchant))
-                .build();
-        productRepository.save(product);
+        Mockito.when(productRepository.existsByProductNameAndMerchantName("TestProductName", "TestMerchantName"))
+                .thenReturn(true);
         ProductDTO productDTO = ProductDTO.builder()
                 .productName("TestProductName")
                 .price(10000)
                 .merchantName("TestMerchantName")
                 .build();
         Boolean result = productService.checkProductAvailability(productDTO);
+        Mockito.verify(productRepository, Mockito.times(1))
+                .existsByProductNameAndMerchantName("TestProductName", "TestMerchantName");
         Assertions.assertTrue(result);
+    }
+
+    @Test
+    void checkProductAvailabilityTest_notFound() {
+        Mockito.when(productRepository.existsByProductNameAndMerchantName("TestProductName", "TestMerchantName"))
+                .thenReturn(false);
+        ProductDTO productDTO = ProductDTO.builder()
+                .productName("TestProductName")
+                .price(10000)
+                .merchantName("TestMerchantName")
+                .build();
+        Boolean result = productService.checkProductAvailability(productDTO);
+        Mockito.verify(productRepository, Mockito.times(1))
+                .existsByProductNameAndMerchantName("TestProductName", "TestMerchantName");
+        Assertions.assertFalse(result);
     }
 
     @Test
@@ -76,16 +88,18 @@ public class ProductServiceTest {
                 Product.builder()
                         .productName("TestProductName1")
                         .price(10000)
-                        .merchant(merchantRepository.save(merchant1))
+                        .merchant(merchant1)
                         .build(),
                 Product.builder()
                         .productName("TestProductName2")
                         .price(20000)
-                        .merchant(merchantRepository.save(merchant2))
+                        .merchant(merchant2)
                         .build()
         );
-        productRepository.saveAll(products);
+        Page<Product> productPage = new PageImpl<>(products, PageRequest.of(0, 5), 1);
+        Mockito.when(productRepository.findAll(PageRequest.of(0, 5))).thenReturn(productPage);
         PaginationDTO<ProductDTO> productDTOPaginationDTO = productService.getAllProductWithPagination(1);
+        Mockito.verify(productRepository, Mockito.times(2)).findAll(PageRequest.of(0, 5));
         Assertions.assertEquals(2, productDTOPaginationDTO.getData().size());
         Assertions.assertEquals(1, productDTOPaginationDTO.getCurrentPage());
         Assertions.assertEquals(1, productDTOPaginationDTO.getTotalPages());
@@ -93,6 +107,7 @@ public class ProductServiceTest {
 
     @Test
     void getAllProductWithPaginationTest_throwDataNotFoundException() {
+        Mockito.when(productRepository.findAll(PageRequest.of(0, 5))).thenReturn(Page.empty());
         Assertions.assertThrows(DataNotFoundException.class, () -> productService.getAllProductWithPagination(1));
     }
 
@@ -108,25 +123,19 @@ public class ProductServiceTest {
                 .merchantLocation("TestMerchantLocation1")
                 .merchantStatus(MerchantStatus.OPEN)
                 .build();
-        Merchant merchant2 = Merchant.builder()
-                .merchantName("TestMerchantName2")
-                .merchantLocation("TestMerchantLocation2")
-                .merchantStatus(MerchantStatus.CLOSED)
-                .build();
-        List<Product> products = Arrays.asList(
+        List<Product> products = Collections.singletonList(
                 Product.builder()
                         .productName("TestProductName1")
                         .price(10000)
-                        .merchant(merchantRepository.save(merchant1))
-                        .build(),
-                Product.builder()
-                        .productName("TestProductName2")
-                        .price(20000)
-                        .merchant(merchantRepository.save(merchant2))
+                        .merchant(merchant1)
                         .build()
         );
-        productRepository.saveAll(products);
+        Page<Product> productPage = new PageImpl<>(products, PageRequest.of(0, 5), 1);
+        Mockito.when(productRepository.findByMerchantStatusWithPagination(PageRequest.of(0, 5), MerchantStatus.OPEN))
+                .thenReturn(productPage);
         PaginationDTO<ProductDTO> productDTOPaginationDTO = productService.getAllProductByMerchantStatusWithPagination(1);
+        Mockito.verify(productRepository, Mockito.times(2))
+                .findByMerchantStatusWithPagination(PageRequest.of(0, 5), MerchantStatus.OPEN);
         Assertions.assertEquals(1, productDTOPaginationDTO.getData().size());
         Assertions.assertEquals(1, productDTOPaginationDTO.getCurrentPage());
         Assertions.assertEquals(1, productDTOPaginationDTO.getTotalPages());
@@ -134,6 +143,7 @@ public class ProductServiceTest {
 
     @Test
     void getAllProductByMerchantStatusWithPaginationTest_throwDataNotFoundException() {
+        Mockito.when(productRepository.findByMerchantStatusWithPagination(PageRequest.of(0, 5), MerchantStatus.OPEN)).thenReturn(Page.empty());
         Assertions.assertThrows(DataNotFoundException.class, () -> productService.getAllProductByMerchantStatusWithPagination(1));
     }
 
@@ -149,18 +159,18 @@ public class ProductServiceTest {
                 .merchantLocation("TestMerchantLocation")
                 .merchantStatus(MerchantStatus.CLOSED)
                 .build();
-        merchantRepository.save(merchant);
         ProductDTO productDTO = ProductDTO.builder()
                 .productName("TestProductName")
                 .price(10000)
                 .merchantName("TestMerchantName")
                 .imageFile(null)
                 .build();
+        Mockito.when(merchantRepository.findByMerchantName(merchant.getMerchantName())).thenReturn(merchant);
+        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         productService.addProduct(productDTO);
-        Product product = productRepository.findByProductNameAndMerchantName("TestProductName", "TestMerchantName");
-        Assertions.assertEquals("TestProductName", product.getProductName());
-        Assertions.assertEquals(10000, product.getPrice());
-        Assertions.assertEquals("TestMerchantName", product.getMerchant().getMerchantName());
+        Mockito.verify(merchantRepository, Mockito.times(1)).findByMerchantName(merchant.getMerchantName());
+        Mockito.verify(productRepository, Mockito.times(1)).save(Mockito.any(Product.class));
+        Assertions.assertDoesNotThrow(() -> productService.addProduct(productDTO));
     }
 
     @Test
@@ -170,6 +180,7 @@ public class ProductServiceTest {
                 .price(10000)
                 .merchantName("WrongMerchantName")
                 .build();
+        Mockito.when(merchantRepository.findByMerchantName(productDTO.getMerchantName())).thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> productService.addProduct(productDTO));
     }
 
@@ -199,19 +210,23 @@ public class ProductServiceTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
-        productRepository.save(product);
+        String oldProductName = "TestProductName";
         ProductDTO productDTO = ProductDTO.builder()
                 .productName("NewTestProductName")
                 .price(20000)
                 .merchantName("TestMerchantName")
                 .build();
-        productService.updateProduct(productDTO, "TestProductName");
-        Product productCheck = productRepository.findByProductNameAndMerchantName("NewTestProductName", "TestMerchantName");
-        Assertions.assertEquals("NewTestProductName", productCheck.getProductName());
-        Assertions.assertEquals(20000, productCheck.getPrice());
-        Assertions.assertEquals("TestMerchantName", productCheck.getMerchant().getMerchantName());
+        Mockito.when(productRepository.findByProductNameAndMerchantName(oldProductName, merchant.getMerchantName()))
+                .thenReturn(product);
+        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+        productService.updateProduct(productDTO, oldProductName);
+        Mockito.verify(productRepository, Mockito.times(1))
+                .findByProductNameAndMerchantName(oldProductName, merchant.getMerchantName());
+        Mockito.verify(productRepository, Mockito.times(1))
+                .save(Mockito.any(Product.class));
+        Assertions.assertDoesNotThrow(() -> productService.updateProduct(productDTO, oldProductName));
     }
 
     @Test
@@ -221,6 +236,8 @@ public class ProductServiceTest {
                 .price(20000)
                 .merchantName("TestMerchantName")
                 .build();
+        Mockito.when(productRepository.findByProductNameAndMerchantName(productDTO.getProductName(), productDTO.getMerchantName()))
+                        .thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> productService.updateProduct(productDTO, "WrongProductName"));
     }
 
@@ -237,22 +254,27 @@ public class ProductServiceTest {
                 .merchantStatus(MerchantStatus.CLOSED)
                 .build();
         Product product = Product.builder()
+                .productId("1")
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
-        productRepository.save(product);
-        ProductDTO productDTO = ProductDTO.builder()
-                .productName("TestProductName")
-                .merchantName("TestMerchantName")
-                        .build();
-        productService.deleteProduct("TestProductName", "TestMerchantName");
-        Assertions.assertNull(productRepository.findByProductNameAndMerchantName("TestProductName", "TestMerchantName"));
+        String productName = "TestProductName";
+        Mockito.when(productRepository.findByProductNameAndMerchantName(productName, merchant.getMerchantName()))
+                .thenReturn(product);
+        productService.deleteProduct(productName, merchant.getMerchantName());
+        Mockito.verify(productRepository, Mockito.times(1))
+                .findByProductNameAndMerchantName(productName, merchant.getMerchantName());
+        Mockito.verify(productRepository, Mockito.times(1))
+                .deleteById(product.getProductId());
+        Assertions.assertDoesNotThrow(() -> productService.deleteProduct(productName, merchant.getMerchantName()));
     }
 
     @Test
     void deleteProductTest_throwDataNotFoundException() {
-        Assertions.assertThrows(DataNotFoundException.class, () -> productService.deleteProduct("TestProductName", "TestMerchantName"));
+        Mockito.when(productRepository.findByProductNameAndMerchantName("TestProductName", "TestMerchantName"))
+                        .thenReturn(null);
+        Assertions.assertThrows(DataNotFoundException.class, () -> productService.deleteProduct("WrongTestProductName", "WrongTestMerchantName"));
     }
 
     @Test

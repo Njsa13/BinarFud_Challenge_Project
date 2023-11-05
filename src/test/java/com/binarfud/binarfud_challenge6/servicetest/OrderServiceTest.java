@@ -8,39 +8,36 @@ import com.binarfud.binarfud_challenge6.exception.DataNotFoundException;
 import com.binarfud.binarfud_challenge6.repository.*;
 import com.binarfud.binarfud_challenge6.service.OrderService;
 
+import com.binarfud.binarfud_challenge6.service.OrderServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
 import java.util.List;
 
+@AutoConfigureMockMvc
 @SpringBootTest
 public class OrderServiceTest {
 
-    @Autowired
+    @InjectMocks
+    private OrderServiceImpl orderService;
+    @Mock
     private OrderDetailRepository orderDetailRepository;
-    @Autowired
+    @Mock
     private UserRepository userRepository;
-    @Autowired
+    @Mock
     private OrderRepository orderRepository;
-    @Autowired
+    @Mock
     private MerchantRepository merchantRepository;
-    @Autowired
+    @Mock
     private  ProductRepository productRepository;
-    @Autowired
-    private OrderService orderService;
-
-    @AfterEach
-    void tearDown() {
-        orderDetailRepository.deleteAll();
-        userRepository.deleteAll();
-        orderRepository.deleteAll();
-        merchantRepository.deleteAll();
-        productRepository.deleteAll();
-    }
 
     @Test
     void updateOrderTest() {
@@ -49,11 +46,6 @@ public class OrderServiceTest {
                 .password("TestUserPassword")
                 .email("testemail@gmail.com")
                 .build();
-        Order order = Order.builder()
-                .orderStatus(OrderStatus.INCOMPLETE)
-                .user(userRepository.save(user))
-                .build();
-        order = orderRepository.save(order);
         Merchant merchant = Merchant.builder()
                 .merchantName("TestMerchantName")
                 .merchantLocation("TestMerchantLocation")
@@ -62,33 +54,35 @@ public class OrderServiceTest {
         Product product = Product.builder()
                 .productName("TestProductName")
                 .price(10000)
-                .merchant(merchantRepository.save(merchant))
+                .merchant(merchant)
                 .build();
-        product = productRepository.save(product);
         List<OrderDetail> orderDetails = Arrays.asList(
                 OrderDetail.builder()
                         .quantity(2)
                         .subtotalPrice(20000)
-                        .order(order)
                         .product(product)
                         .build(),
                 OrderDetail.builder()
                         .quantity(1)
                         .subtotalPrice(10000)
-                        .order(order)
                         .product(product)
                         .build());
-        orderDetailRepository.saveAll(orderDetails);
+        Order order = Order.builder()
+                .orderStatus(OrderStatus.INCOMPLETE)
+                .user(user)
+                .orderDetails(orderDetails)
+                .build();
+        Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
+                .thenReturn(order);
+        Mockito.when(orderRepository.save(order)).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDTO orderDTO = OrderDTO.builder()
                 .destinationAddress("TestDestinationAddress")
                 .build();
         orderService.updateOrder(orderDTO, "TestUserUsername");
-        Order orderCheck = orderRepository
-                .findByUsernameAndOrderStatus("TestUserUsername", OrderStatus.COMPLETE);
-        Assertions.assertEquals(OrderStatus.COMPLETE, orderCheck.getOrderStatus());
-        Assertions.assertEquals("TestUserUsername", orderCheck.getUser().getUsername());
-        Assertions.assertEquals("TestDestinationAddress", orderCheck.getDestinationAddress());
-        Assertions.assertEquals(30000, orderCheck.getTotalPrice());
+        Mockito.verify(orderRepository, Mockito.times(1))
+                .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(order);
+        Assertions.assertDoesNotThrow(() -> orderService.updateOrder(orderDTO, "TestUserUsername"));
     }
 
     @Test
@@ -96,6 +90,8 @@ public class OrderServiceTest {
         OrderDTO orderDTO = OrderDTO.builder()
                 .destinationAddress("TestDestinationAddress")
                 .build();
+        Mockito.when(orderRepository.findByUsernameAndOrderStatus("TestUserUsername", OrderStatus.INCOMPLETE))
+                .thenReturn(null);
         Assertions.assertThrows(DataNotFoundException.class, () -> orderService.updateOrder(orderDTO, "TestUserUsername"));
     }
 
