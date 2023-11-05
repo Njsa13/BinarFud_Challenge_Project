@@ -28,13 +28,6 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService{
 
-    private static final String USERNAMEREGEX = "^[a-zA-Z0-9]{4,}$";
-    private static final String PASSWORDREGEX = "^(?=.*[a-zA-Z])(?=.*\\d).{6,}$";
-    private static final String EMAILREGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
-    private final Pattern usernamePattern = Pattern.compile(USERNAMEREGEX);
-    private final Pattern passwordPattern = Pattern.compile(PASSWORDREGEX);
-    private final Pattern emailPattern = Pattern.compile(EMAILREGEX);
-
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -72,7 +65,11 @@ public class UserServiceImpl implements UserService{
     @Override
     public User convertUserDTOToUser(SignupRequest signupRequest) {
         log.debug("Converting userDTO to User with username = {}", signupRequest.getUsername());
-        return new User(signupRequest.getUsername(), signupRequest.getEmail(), passwordEncoder.encode(signupRequest.getPassword()));
+        return User.builder()
+                .username(signupRequest.getUsername())
+                .password(passwordEncoder.encode(signupRequest.getPassword()))
+                .email(signupRequest.getEmail())
+                .build();
     }
 
     /**
