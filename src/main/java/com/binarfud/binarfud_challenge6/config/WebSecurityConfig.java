@@ -38,6 +38,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/login","/swagger-ui", "/api/auth/**", "/swagger-ui.html",
                         "/swagger-ui/**", "/v3/api-docs/**", "/api/product/download-image/{productName}")
                 .permitAll()
+                .antMatchers("/api/merchant/get-open", "/api/product/get-open")
+                .hasAnyAuthority(ERole.ROLE_CUSTOMER.name(), ERole.ROLE_MERCHANT.name(), ERole.ROLE_ADMIN.name())
+                .antMatchers("/api/order/**")
+                .hasAnyAuthority(ERole.ROLE_CUSTOMER.name(), ERole.ROLE_ADMIN.name())
+                .antMatchers("/api/merchant/add", "/api/merchant/update/{merchantName}",
+                        "/api/merchant/update-status/{merchantName}", "/api/product/add", "/api/product/get-all",
+                        "/api/product/update/{productName}", "/api/product/delete")
+                .hasAnyAuthority(ERole.ROLE_MERCHANT.name(), ERole.ROLE_ADMIN.name())
+                .antMatchers("/api/user/update/{username}", "/api/user/delete/{username}", "/api/order/print-invoice/{username}")
+                .access("hasAnyRole('ROLE_CUSTOMER', 'ROLE_MERCHANT', 'ROLE_ADMIN') and #username == authentication.name")
+                .antMatchers("/api/merchant/get-all", "/api/merchant/delete/{merchantName}", "/api/user/get")
+                .hasAuthority(ERole.ROLE_ADMIN.name())
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
