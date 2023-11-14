@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.binarfud</groupId>
-	<artifactId>binarfud_challenge5 </artifactId>
+	<artifactId>binarfud_challenge7</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Binarfud_Challenge5 </name>
+	<name>Binarfud_Challenge7</name>
 	<description>MSIB project for Spring Boot</description>
 	<properties>
 		<java.version>1.8</java.version>
