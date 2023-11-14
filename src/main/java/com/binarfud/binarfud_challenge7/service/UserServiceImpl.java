@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService{
      * @param signupRequest
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public Boolean checkUsernameAvailability(SignupRequest signupRequest) {
         Optional<SignupRequest> signupRequestOptional = Optional.ofNullable(signupRequest);
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService{
         }
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Boolean checkEmailAvailability(SignupRequest signupRequest) {
         Optional<SignupRequest> signupRequestOptional = Optional.ofNullable(signupRequest);
@@ -75,6 +78,7 @@ public class UserServiceImpl implements UserService{
      * @param page
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<UserDTO> getAllUserWithPagination(Integer page) {
         log.debug("Getting User with pagination with current page = {}", page);
@@ -104,6 +108,7 @@ public class UserServiceImpl implements UserService{
      * Method untuk menambah user
      * @param signupRequest
      */
+    @Transactional
     @Override
     public void addUser(SignupRequest signupRequest) {
         Optional<SignupRequest> signupRequestOptional = Optional.ofNullable(signupRequest);
@@ -144,6 +149,7 @@ public class UserServiceImpl implements UserService{
      * @param userDTO
      * @param oldUsername
      */
+    @Transactional
     @Override
     public void updateUser(UserDTO userDTO, String oldUsername) {
         Optional<UserDTO> userDTOOptional = Optional.ofNullable(userDTO);
@@ -171,6 +177,7 @@ public class UserServiceImpl implements UserService{
      * Method untuk hapus user
      * @param username
      */
+    @Transactional
     @Override
     public void deleteUser(String username) {
         Optional<String> usernameOptional = Optional.ofNullable(username);

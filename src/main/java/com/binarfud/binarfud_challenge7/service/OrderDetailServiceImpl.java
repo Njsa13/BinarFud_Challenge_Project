@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
@@ -40,6 +41,7 @@ public class OrderDetailServiceImpl implements OrderDetailService{
      * @param username
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public Boolean checkOrderDetailAvailability(OrderDetailDTO orderDetailDTO, String username) {
         Optional<OrderDetailDTO> orderDetailDTOOptional = Optional.ofNullable(orderDetailDTO);
@@ -60,6 +62,7 @@ public class OrderDetailServiceImpl implements OrderDetailService{
      * @param username
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<OrderDetailDTO> getAllOrderDetailWithPagination(Integer page, String username) {
         Optional<String> usernameOptional = Optional.ofNullable(username);
@@ -89,6 +92,7 @@ public class OrderDetailServiceImpl implements OrderDetailService{
      * @param orderDetailDTO
      * @param username
      */
+    @Transactional
     @Override
     public void addOrderDetail(OrderDetailDTO orderDetailDTO, String username) {
         Optional<OrderDetailDTO> orderDetailDTOOptional = Optional.ofNullable(orderDetailDTO);
@@ -153,6 +157,7 @@ public class OrderDetailServiceImpl implements OrderDetailService{
      * @param orderDetailDTO
      * @param username
      */
+    @Transactional
     @Override
     public void updateOrderDetail(OrderDetailDTO orderDetailDTO, String username) {
         Optional<OrderDetailDTO> orderDetailDTOOptional = Optional.ofNullable(orderDetailDTO);
@@ -195,6 +200,7 @@ public class OrderDetailServiceImpl implements OrderDetailService{
      * @param merchantName
      * @param username
      */
+    @Transactional
     @Override
     public void deleteOrderDetail(String productName, String merchantName, String username) {
         Optional<String> usernameOptional = Optional.ofNullable(username);

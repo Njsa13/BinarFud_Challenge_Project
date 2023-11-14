@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param merchantDTO
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public Boolean checkMerchantAvailability(MerchantDTO merchantDTO) {
         Optional<MerchantDTO> merchantDTOOptional = Optional.ofNullable(merchantDTO);
@@ -81,6 +83,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param page
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<MerchantDTO> getAllMerchantWithPagination(Integer page) {
         log.debug("Getting Merchant with pagination with current page = {}", page);
@@ -105,6 +108,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param page
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<MerchantDTO> getAllMerchantByMerchantStatusWithPagination(Integer page) {
         log.debug("Getting Merchant with pagination with current page = {}", page);
@@ -129,6 +133,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param merchantDTO
      * @throws IllegalArgumentException
      */
+    @Transactional
     @Override
     public void addMerchant(MerchantDTO merchantDTO) throws IllegalArgumentException {
         Optional<MerchantDTO> merchantDTOOptional = Optional.ofNullable(merchantDTO);
@@ -161,6 +166,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param oldMerchantName
      * @throws IllegalArgumentException
      */
+    @Transactional
     @Override
     public void updateMerchant(MerchantDTO merchantDTO, String oldMerchantName) throws IllegalArgumentException {
         Optional<MerchantDTO> merchantDTOOptional = Optional.ofNullable(merchantDTO);
@@ -190,6 +196,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * @param merchantStatus
      * @throws IllegalArgumentException
      */
+    @Transactional
     @Override
     public void updateMerchantStatus(String merchantName, String merchantStatus) throws IllegalArgumentException {
         Optional<String> merchantNameOptional = Optional.ofNullable(merchantName);
@@ -215,6 +222,7 @@ public class MerchantServiceImpl implements  MerchantService {
      * Method untuk hapus merchant
      * @param merchantName
      */
+    @Transactional
     @Override
     public void deleteMerchant(String merchantName) {
         Optional<String> merchantNameOptional = Optional.ofNullable(merchantName);

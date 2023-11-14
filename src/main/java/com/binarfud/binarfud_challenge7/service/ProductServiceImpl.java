@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
      * @param productDTO
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public Boolean checkProductAvailability(ProductDTO productDTO) {
         Optional<ProductDTO> productDTOOptional = Optional.ofNullable(productDTO);
@@ -92,6 +94,7 @@ public class ProductServiceImpl implements ProductService {
      * @param merchantName
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public byte[] getImageByProductNameAndMerchantName(String productName, String merchantName) {
         Optional<String> productNameOptional = Optional.ofNullable(productName);
@@ -119,6 +122,7 @@ public class ProductServiceImpl implements ProductService {
      * @param page
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<ProductDTO> getAllProductWithPagination(Integer page) {
         log.debug("Getting Product with pagination with current page = {}", page);
@@ -143,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
      * @param page
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public PaginationDTO<ProductDTO> getAllProductByMerchantStatusWithPagination(Integer page) {
         log.debug("Getting Product with pagination with current page = {}", page);
@@ -166,6 +171,7 @@ public class ProductServiceImpl implements ProductService {
      * Method untuk menambah product
      * @param productDTO
      */
+    @Transactional
     @Override
     public void addProduct(ProductDTO productDTO) {
         Optional<ProductDTO> productDTOOptional = Optional.ofNullable(productDTO);
@@ -200,6 +206,7 @@ public class ProductServiceImpl implements ProductService {
      * @param productDTO
      * @param oldProductName
      */
+    @Transactional
     @Override
     public void updateProduct(ProductDTO productDTO, String oldProductName) {
         Optional<ProductDTO> productDTOOptional = Optional.ofNullable(productDTO);
@@ -232,6 +239,7 @@ public class ProductServiceImpl implements ProductService {
      * @param productName
      * @param merchantName
      */
+    @Transactional
     @Override
     public void deleteProduct(String productName, String merchantName) {
         Optional<String> productNameOptional = Optional.ofNullable(productName);

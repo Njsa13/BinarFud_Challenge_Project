@@ -12,6 +12,7 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -32,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderDTO
      * @param username
      */
+    @Transactional
     @Override
     public void updateOrder(OrderDTO orderDTO, String username) {
         Optional<OrderDTO> orderDTOOptional = Optional.ofNullable(orderDTO);
@@ -77,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
      * @throws JRException
      * @throws FileNotFoundException
      */
+    @Transactional(readOnly = true)
     @Override
     public byte[] printInvoice(String username) throws JRException, FileNotFoundException {
         Optional<Order> orderOptional = Optional.ofNullable(orderRepository.findNewestOrderByUsername(username).get(0));
