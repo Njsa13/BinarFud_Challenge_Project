@@ -21,7 +21,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, String
             "where u.username = :username and p.productName = :productName and m.merchantName = :merchantName and o.orderStatus = :orderStatus")
     OrderDetail findByUsernameAndProductNameAndMerchantNameAndOrderStatus(String username, String productName, String merchantName, OrderStatus orderStatus);
 
-    @Query("select new com.binarfud.binarfud_challenge6.dto.OrderDetailDTO" +
+    @Query("select new com.binarfud.binarfud_challenge7.dto.OrderDetailDTO" +
             "(p.productName, m.merchantName, p.price, od.quantity, od.subtotalPrice) from OrderDetail od " +
             "join od.order o join o.user u join od.product p join p.merchant m " +
             "where u.username = :username and o.orderStatus = :orderStatus")

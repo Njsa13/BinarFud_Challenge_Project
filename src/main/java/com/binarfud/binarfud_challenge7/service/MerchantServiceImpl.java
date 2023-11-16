@@ -148,8 +148,8 @@ public class MerchantServiceImpl implements  MerchantService {
                 User user = userRepository.findByUsernameAndRoleName(merchantDTO.getUsername(), ERole.ROLE_MERCHANT)
                         .orElseThrow(() -> new DataNotFoundException("User with username = "+merchantDTO.getUsername()));
                 Merchant merchant = convertMerchantDTOToMerchant(merchantDTO);
-                merchant.setUser(user);
-                merchantRepository.save(merchant);
+                user.setMerchant(merchantRepository.save(merchant));
+                userRepository.save(user);
                 log.info("Saving Merchant successful with merchant name = {}", merchantDTO.getMerchantName());
             } else {
                 log.error("Saving Merchant unsuccessful with merchant name = {}", merchantDTO.getMerchantName());
