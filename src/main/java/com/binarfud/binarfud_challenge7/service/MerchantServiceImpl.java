@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -148,9 +149,11 @@ public class MerchantServiceImpl implements  MerchantService {
                 User user = userRepository.findByUsernameAndRoleName(merchantDTO.getUsername(), ERole.ROLE_MERCHANT)
                         .orElseThrow(() -> new DataNotFoundException("User with username = "+merchantDTO.getUsername()));
                 Merchant merchant = convertMerchantDTOToMerchant(merchantDTO);
-                user.setMerchant(merchantRepository.save(merchant));
-                userRepository.save(user);
-                log.info("Saving Merchant successful with merchant name = {}", merchantDTO.getMerchantName());
+                CompletableFuture.runAsync(() -> {
+                    user.setMerchant(merchantRepository.save(merchant));
+                    userRepository.save(user);
+                    log.info("Saving Merchant successful with merchant name = {}", merchantDTO.getMerchantName());
+                });
             } else {
                 log.error("Saving Merchant unsuccessful with merchant name = {}", merchantDTO.getMerchantName());
                 throw new IllegalArgumentException("Merchant name, Merchant location, and Merchant status cannot be null");
@@ -179,8 +182,10 @@ public class MerchantServiceImpl implements  MerchantService {
                 merchant.setMerchantName(merchantDTO.getMerchantName());
                 merchant.setMerchantLocation(merchantDTO.getMerchantLocation());
                 merchant.setMerchantStatus(toMerchantStatus(merchantDTO.getMerchantStatus() == null ? "null" : merchantDTO.getMerchantStatus()));
-                merchantRepository.save(merchant);
-                log.info("Updating Merchant successful with merchant name = {}", merchantDTO.getMerchantName());
+                CompletableFuture.runAsync(() -> {
+                    merchantRepository.save(merchant);
+                    log.info("Updating Merchant successful with merchant name = {}", merchantDTO.getMerchantName());
+                });
             } else {
                 log.error("Updating Merchant unsuccessful with merchant name = {}", merchantDTO.getMerchantName());
                 throw new DataNotFoundException("Merchant with merchant name = "+oldMerchantName);
@@ -207,8 +212,10 @@ public class MerchantServiceImpl implements  MerchantService {
             if (merchantOptional.isPresent()) {
                 Merchant merchant = merchantOptional.get();
                 merchant.setMerchantStatus(toMerchantStatus(merchantStatus));
-                merchantRepository.save(merchant);
-                log.info("Updating Merchant status successful with merchant name = {}", merchantName);
+                CompletableFuture.runAsync(() -> {
+                    merchantRepository.save(merchant);
+                    log.info("Updating Merchant status successful with merchant name = {}", merchantName);
+                });
             } else {
                 log.error("Updating Merchant status unsuccessful with merchant name = {}", merchantName);
                 throw new DataNotFoundException("Merchant with merchant name = "+merchantName);

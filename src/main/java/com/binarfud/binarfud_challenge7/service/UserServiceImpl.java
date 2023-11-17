@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -133,8 +134,10 @@ public class UserServiceImpl implements UserService{
                     });
                 }
                 user.setRoles(roles);
-                userRepository.save(user);
-                log.info("Saving User successful with username = {}", signupRequest.getUsername());
+                CompletableFuture.runAsync(() -> {
+                    userRepository.save(user);
+                    log.info("Saving User successful with username = {}", signupRequest.getUsername());
+                });
             } else {
                 log.error("Saving User unsuccessful with username = {}", signupRequest.getUsername());
                 throw new IllegalArgumentException("Username, Password, and Email cannot be null");
@@ -162,8 +165,10 @@ public class UserServiceImpl implements UserService{
                 user.setUsername(userDTO.getUsername());
                 user.setPassword(userDTO.getPassword());
                 user.setEmail(userDTO.getEmail());
-                userRepository.save(user);
-                log.info("Updating User successful with username = {}", userDTO.getUsername());
+                CompletableFuture.runAsync(() -> {
+                    userRepository.save(user);
+                    log.info("Updating User successful with username = {}", userDTO.getUsername());
+                });
             } else {
                 log.error("Updating User unsuccessful with username = {}", userDTO.getUsername());
                 throw new DataNotFoundException("User with username = "+oldUsername);

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -185,9 +186,11 @@ public class ProductServiceImpl implements ProductService {
                         productDTO.getProductName(), productDTO.getMerchantName());
                 if (merchantOptional.isPresent()) {
                     Merchant merchant = merchantOptional.get();
-                    productRepository.save(convertProductDTOToProduct(productDTO, merchant));
-                    log.info("Saving Product successful with product name = {} and merchant name = {}",
-                            productDTO.getProductName(), productDTO.getMerchantName());
+                    CompletableFuture.runAsync(() -> {
+                        productRepository.save(convertProductDTOToProduct(productDTO, merchant));
+                        log.info("Saving Product successful with product name = {} and merchant name = {}",
+                                productDTO.getProductName(), productDTO.getMerchantName());
+                    });
                 } else {
                     log.error("Saving Product unsuccessful with product name = {} and merchant name = {}",
                             productDTO.getProductName(), productDTO.getMerchantName());
@@ -221,9 +224,11 @@ public class ProductServiceImpl implements ProductService {
                 product.setProductName(productDTO.getProductName());
                 product.setPrice(productDTO.getPrice());
                 product.setImageFile(productDTO.getImageFile());
-                productRepository.save(product);
-                log.info("Updating Product successful with product name = {} and merchant name = {}",
-                        productDTO.getProductName(), productDTO.getMerchantName());
+                CompletableFuture.runAsync(() -> {
+                    productRepository.save(product);
+                    log.info("Updating Product successful with product name = {} and merchant name = {}",
+                            productDTO.getProductName(), productDTO.getMerchantName());
+                });
             } else {
                 log.error("Updating Product successful with product name = {} and merchant name = {}",
                         productDTO.getProductName(), productDTO.getMerchantName());

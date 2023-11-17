@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,8 +53,10 @@ public class OrderServiceImpl implements OrderService {
                     order.setDestinationAddress(orderDTO.getDestinationAddress());
                     order.setTotalPrice(calculateTotalPrice(orderDetails));
                     order.setOrderStatus(OrderStatus.COMPLETE);
-                    orderRepository.save(order);
-                    log.info("Updating order successful with username = {}", username);
+                    CompletableFuture.runAsync(() -> {
+                        orderRepository.save(order);
+                        log.info("Updating order successful with username = {}", username);
+                    });
                 } else {
                     log.error("Updating order unsuccessful with username = {}", username);
                     throw new DataNotFoundException("Order with username = "+username);

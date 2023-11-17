@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -119,24 +120,28 @@ public class OrderDetailServiceImpl implements OrderDetailService{
                                 .product(product)
                                 .order(orderOptional.get())
                                 .build();
-                        orderDetailRepository.save(orderDetail);
-                        log.info("Saving order detail with available order successful with username = {}, product name = {}, and merchant name = {}",
-                                username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                        CompletableFuture.runAsync(() -> {
+                            orderDetailRepository.save(orderDetail);
+                            log.info("Saving order detail with available order successful with username = {}, product name = {}, and merchant name = {}",
+                                    username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                        });
                     } else {
                         Order order = Order.builder()
                                 .orderStatus(OrderStatus.INCOMPLETE)
                                 .orderTime(new Date())
                                 .user(user)
                                 .build();
-                        OrderDetail orderDetail = OrderDetail.builder()
-                                .quantity(orderDetailDTO.getQuantity())
-                                .subtotalPrice(product.getPrice()*orderDetailDTO.getQuantity())
-                                .product(product)
-                                .order(orderRepository.save(order))
-                                .build();
-                        orderDetailRepository.save(orderDetail);
-                        log.info("Saving order detail with no order successful with username = {}, product name = {}, and merchant name = {}",
-                                username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                        CompletableFuture.runAsync(() -> {
+                            OrderDetail orderDetail = OrderDetail.builder()
+                                    .quantity(orderDetailDTO.getQuantity())
+                                    .subtotalPrice(product.getPrice()*orderDetailDTO.getQuantity())
+                                    .product(product)
+                                    .order(orderRepository.save(order))
+                                    .build();
+                            orderDetailRepository.save(orderDetail);
+                            log.info("Saving order detail with no order successful with username = {}, product name = {}, and merchant name = {}",
+                                    username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                        });
                     }
                 } else {
                     log.error("Saving order detail unsuccessful with username = {}, product name = {}, and merchant name = {}",
@@ -177,9 +182,11 @@ public class OrderDetailServiceImpl implements OrderDetailService{
                     OrderDetail orderDetail = orderDetailOptional.get();
                     orderDetail.setQuantity(orderDetailDTO.getQuantity());
                     orderDetail.setSubtotalPrice(orderDetail.getProduct().getPrice()*orderDetailDTO.getQuantity());
-                    orderDetailRepository.save(orderDetail);
-                    log.info("Updating order detail successful with username = {}, product name = {}, and merchant name = {}",
-                            username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                    CompletableFuture.runAsync(() -> {
+                        orderDetailRepository.save(orderDetail);
+                        log.info("Updating order detail successful with username = {}, product name = {}, and merchant name = {}",
+                                username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
+                    });
                 } else {
                     log.error("Updating order detail unsuccessful with username = {}, product name = {}, and merchant name = {}",
                             username, orderDetailDTO.getProductName(), orderDetailDTO.getMerchantName());
