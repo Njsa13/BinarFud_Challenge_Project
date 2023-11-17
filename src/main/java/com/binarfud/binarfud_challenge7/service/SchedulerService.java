@@ -20,6 +20,10 @@ public class SchedulerService {
     @Autowired
     private OrderRepository orderRepository;
 
+    /**
+     * Method untuk menghapus order yang belum tidak di checkout dalam kurun waktu satu bulan terakhir
+     * Method ini akan dijalankan setiap hari pada pukul 01.00
+     */
     @Transactional
     @Scheduled(cron = "0 0 1 * * *")
     public void deleteIncompleteOrdersOlderThanOneMonth() {
