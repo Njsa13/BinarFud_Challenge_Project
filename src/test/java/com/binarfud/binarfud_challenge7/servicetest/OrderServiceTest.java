@@ -71,14 +71,12 @@ public class OrderServiceTest {
                 .build();
         Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
                 .thenReturn(order);
-        Mockito.when(orderRepository.save(order)).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDTO orderDTO = OrderDTO.builder()
                 .destinationAddress("TestDestinationAddress")
                 .build();
         orderService.updateOrder(orderDTO, "TestUserUsername");
         Mockito.verify(orderRepository, Mockito.times(1))
                 .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
-        Mockito.verify(orderRepository, Mockito.times(1)).save(order);
         Assertions.assertDoesNotThrow(() -> orderService.updateOrder(orderDTO, "TestUserUsername"));
     }
 

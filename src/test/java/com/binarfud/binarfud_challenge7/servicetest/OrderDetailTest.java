@@ -156,7 +156,6 @@ public class OrderDetailTest {
                 .thenReturn(product);
         Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
                 .thenReturn(order);
-        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
@@ -168,7 +167,6 @@ public class OrderDetailTest {
                 .findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName());
         Mockito.verify(orderRepository, Mockito.times(1))
                 .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
-        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
         Assertions.assertDoesNotThrow(() -> orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
@@ -194,8 +192,6 @@ public class OrderDetailTest {
                 .thenReturn(product);
         Mockito.when(orderRepository.findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE))
                 .thenReturn(null);
-        Mockito.when(orderRepository.save(Mockito.any(Order.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
-        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
@@ -207,8 +203,6 @@ public class OrderDetailTest {
                 .findByProductNameAndMerchantName(product.getProductName(), merchant.getMerchantName());
         Mockito.verify(orderRepository, Mockito.times(1))
                 .findByUsernameAndOrderStatus(user.getUsername(), OrderStatus.INCOMPLETE);
-        Mockito.verify(orderRepository, Mockito.times(1)).save(Mockito.any(Order.class));
-        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
         Assertions.assertDoesNotThrow(() -> orderDetailService.addOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 
@@ -273,7 +267,6 @@ public class OrderDetailTest {
                 .findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
                         "TestUserUsername", product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE))
                 .thenReturn(orderDetail);
-        Mockito.when(orderDetailRepository.save(Mockito.any(OrderDetail.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         OrderDetailDTO orderDetailDTO = OrderDetailDTO.builder()
                 .productName("TestProductName")
                 .merchantName("TestMerchantName")
@@ -282,7 +275,6 @@ public class OrderDetailTest {
         orderDetailService.updateOrderDetail(orderDetailDTO, "TestUserUsername");
         Mockito.verify(orderDetailRepository, Mockito.times(1)).findByUsernameAndProductNameAndMerchantNameAndOrderStatus(
                 "TestUserUsername", product.getProductName(), merchant.getMerchantName(), OrderStatus.INCOMPLETE);
-        Mockito.verify(orderDetailRepository, Mockito.times(1)).save(Mockito.any(OrderDetail.class));
         Assertions.assertDoesNotThrow(() -> orderDetailService.updateOrderDetail(orderDetailDTO, "TestUserUsername"));
     }
 

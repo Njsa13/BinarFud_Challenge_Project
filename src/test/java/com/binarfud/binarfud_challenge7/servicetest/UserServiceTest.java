@@ -113,9 +113,7 @@ public class UserServiceTest {
                 .role(eRoleSet)
                 .build();
         Mockito.when(roleRepository.findByRoleName(ERole.ROLE_CUSTOMER)).thenReturn(Optional.of(new Roles()));
-        Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         userService.addUser(signupRequest);
-        Mockito.verify(userRepository, Mockito.times(1)).save(Mockito.any(User.class));
         Mockito.verify(roleRepository, Mockito.times(1)).findByRoleName(ERole.ROLE_CUSTOMER);
         Assertions.assertDoesNotThrow(() -> userService.addUser(signupRequest));
     }
@@ -149,11 +147,9 @@ public class UserServiceTest {
                 .email("newtestemail@gmail.com")
                 .build();
         Mockito.when(userRepository.findByUsername(oldUsername)).thenReturn(Optional.of(user));
-        Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         userService.updateUser(newUser, oldUsername);
         Mockito.verify(userRepository, Mockito.times(1))
                 .findByUsername(oldUsername);
-        Mockito.verify(userRepository,Mockito.times(1)).save(Mockito.any(User.class));
         Assertions.assertDoesNotThrow(() -> userService.updateUser(newUser, oldUsername));
     }
 

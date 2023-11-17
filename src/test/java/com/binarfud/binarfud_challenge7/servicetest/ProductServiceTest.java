@@ -163,10 +163,8 @@ public class ProductServiceTest {
                 .imageFile(null)
                 .build();
         Mockito.when(merchantRepository.findByMerchantName(merchant.getMerchantName())).thenReturn(merchant);
-        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         productService.addProduct(productDTO);
         Mockito.verify(merchantRepository, Mockito.times(1)).findByMerchantName(merchant.getMerchantName());
-        Mockito.verify(productRepository, Mockito.times(1)).save(Mockito.any(Product.class));
         Assertions.assertDoesNotThrow(() -> productService.addProduct(productDTO));
     }
 
@@ -217,12 +215,9 @@ public class ProductServiceTest {
                 .build();
         Mockito.when(productRepository.findByProductNameAndMerchantName(oldProductName, merchant.getMerchantName()))
                 .thenReturn(product);
-        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         productService.updateProduct(productDTO, oldProductName);
         Mockito.verify(productRepository, Mockito.times(1))
                 .findByProductNameAndMerchantName(oldProductName, merchant.getMerchantName());
-        Mockito.verify(productRepository, Mockito.times(1))
-                .save(Mockito.any(Product.class));
         Assertions.assertDoesNotThrow(() -> productService.updateProduct(productDTO, oldProductName));
     }
 

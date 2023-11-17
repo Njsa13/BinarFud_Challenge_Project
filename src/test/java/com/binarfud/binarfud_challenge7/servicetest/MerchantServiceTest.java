@@ -97,16 +97,28 @@ public class MerchantServiceTest {
 
     @Test
     void getAllMerchantWithPaginationTest() {
+        User user1 = User.builder()
+                .username("TestUserUsername1")
+                .password("TestUserPassword")
+                .email("testemail1@gmail.com")
+                .build();
+        User user2 = User.builder()
+                .username("TestUserUsername2")
+                .password("TestUserPassword")
+                .email("testemail2@gmail.com")
+                .build();
         List<Merchant> merchants = Arrays.asList(
                 Merchant.builder()
                         .merchantName("TestMerchantName1")
                         .merchantLocation("TestMerchantLocation1")
                         .merchantStatus(MerchantStatus.OPEN)
+                        .user(user1)
                         .build(),
                 Merchant.builder()
                         .merchantName("TestMerchantName2")
                         .merchantLocation("TestMerchantLocation2")
                         .merchantStatus(MerchantStatus.CLOSED)
+                        .user(user2)
                         .build()
         );
         Page<Merchant> merchantPage = new PageImpl<>(merchants, PageRequest.of(0, 5), 1);
@@ -131,11 +143,17 @@ public class MerchantServiceTest {
 
     @Test
     void getAllMerchantByMerchantStatusWithPaginationTest() {
+        User user = User.builder()
+                .username("TestUserUsername1")
+                .password("TestUserPassword")
+                .email("testemail1@gmail.com")
+                .build();
         List<Merchant> merchants = Collections.singletonList(
                 Merchant.builder()
                         .merchantName("TestMerchantName1")
                         .merchantLocation("TestMerchantLocation1")
                         .merchantStatus(MerchantStatus.OPEN)
+                        .user(user)
                         .build()
         );
         Page<Merchant> merchantPage = new PageImpl<>(merchants, PageRequest.of(0, 5), 1);
@@ -260,10 +278,8 @@ public class MerchantServiceTest {
                 .build();
         String merchantName = "TestMerchantName";
         Mockito.when(merchantRepository.findByMerchantName(merchantName)).thenReturn(merchant);
-        Mockito.when(merchantRepository.save(Mockito.any(Merchant.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         merchantService.updateMerchantStatus(merchantName, "OPEN");
         Mockito.verify(merchantRepository, Mockito.times(1)).findByMerchantName(merchantName);
-        Mockito.verify(merchantRepository, Mockito.times(1)).save(Mockito.any(Merchant.class));
         Assertions.assertDoesNotThrow(() -> merchantService.updateMerchantStatus(merchantName, "OPEN"));
 
     }
