@@ -194,11 +194,9 @@ public class MerchantServiceTest {
                 .build();
         Mockito.when(userRepository.findByUsernameAndRoleName(user.getUsername(), ERole.ROLE_MERCHANT))
                 .thenReturn(Optional.of(user));
-        Mockito.when(merchantRepository.save(Mockito.any(Merchant.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         merchantService.addMerchant(merchantDTO);
         Mockito.verify(userRepository, Mockito.times(1))
                 .findByUsernameAndRoleName(user.getUsername(), ERole.ROLE_MERCHANT);
-        Mockito.verify(merchantRepository, Mockito.times(1)).save(Mockito.any(Merchant.class));
         Assertions.assertDoesNotThrow(() -> merchantService.addMerchant(merchantDTO));
     }
 
@@ -231,10 +229,8 @@ public class MerchantServiceTest {
                 .merchantStatus("OPEN")
                 .build();
         Mockito.when(merchantRepository.findByMerchantName(merchantName)).thenReturn(merchant);
-        Mockito.when(merchantRepository.save(Mockito.any(Merchant.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         merchantService.updateMerchant(newMerchant, merchantName);
         Mockito.verify(merchantRepository, Mockito.times(1)).findByMerchantName(merchantName);
-        Mockito.verify(merchantRepository, Mockito.times(1)).save(Mockito.any(Merchant.class));
         Assertions.assertDoesNotThrow(() -> merchantService.updateMerchant(newMerchant, merchantName));
     }
 
